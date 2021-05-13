@@ -35,7 +35,7 @@ def sub_err(command: str, message: str):
 #### Fetching Start ####
 
 def fetch_contents():
-	sub_log('fetch_contents', 'start fetching contents...')
+	sub_log('fetch_contents', 'fetching contents...')
 	try:
 		response = requests.get(f"{conf['remote']['url']}/fetch_contents?token={conf['remote']['token']}")
 		# If the response was successful, no Exception will be raised
@@ -66,7 +66,7 @@ def init():
 	'''
 	Initialize a git version control workplace from nothing
 	'''
-	sub_log('init', 'start initializing workplace')
+	sub_log('init', 'initializing workplace...')
 
 
 @cli.command()
@@ -74,7 +74,7 @@ def rm():
 	'''
 	Delete the whole workplace
 	'''
-	sub_log('rm', 'start deleting workplace')
+	sub_log('rm', 'deleting workplace...')
 
 
 @cli.command()
@@ -82,13 +82,15 @@ def clone():
 	'''
 	Clone the workplace from remote repo
 	'''
+	sub_log('clone', 'cloning from remote repo...')
 
 
 @cli.command()
 def pull():
 	'''
-	Pull the workplace from production environment
+	Pull the workplace from PROD environment
 	'''
+	sub_log('pull', 'pulling from PROD environment...')
 
 
 @cli.command()
@@ -96,6 +98,7 @@ def status():
 	'''
 	Check the current status of workplace
 	'''
+	sub_log('status', 'checking status of workplace...')
 
 
 @cli.command()
@@ -103,6 +106,7 @@ def add():
 	'''
 	Add file contents to the index
 	'''
+	sub_log('add', 'adding file contents to index...')
 
 
 @cli.command()
@@ -110,13 +114,15 @@ def commit():
 	'''
 	Record changes to the repository
 	'''
+	sub_log('commit', 'recoding changes...')
 
 
 @cli.command()
 def merge():
 	'''
-	Merge the prod environment and local repo
+	Merge the PROD environment and local repo
 	'''
+	sub_log('merge', 'merging prod environment with local repo...')
 
 
 @cli.command()
@@ -124,6 +130,7 @@ def push():
 	'''
 	Update remote refs along with associated objects
 	'''
+	sub_log('push', 'pushing to remote')
 
 
 @cli.command()
@@ -131,7 +138,7 @@ def prod_test():
 	'''
 	test connectvity of production environment
 	'''
-	sub_log('prod-test', 'start testing connectivity...')
+	sub_log('prod-test', 'testing connectivity...')
 	try:
 		response = requests.get(f"{conf['remote']['url']}/welcome?token={conf['remote']['token']}")
 		# If the response was successful, no Exception will be raised
@@ -151,8 +158,7 @@ def prod_test():
 #### Command Line Interface (CLI) End ####
 
 if __name__ == '__main__':
-	main_log('PROGRAM STARTS')
-	main_log('read configuration')
+	main_log('read configuration...')
 	read_conf()
 	click.echo(click.style('-' * 40, fg = 'bright_blue'))
 	# Enable click
