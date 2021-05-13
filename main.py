@@ -50,12 +50,28 @@ def test():
 		res = response.json()
 		sub_log('test', f'RESPONSE: {res}')
 		if res['code'] == 1: sub_log('test', 'Connectivity test passed')
-		else: sub_err('test', 'Connectivity test failed')
+		else: sub_err('test', f'Connectivity test failed, Message: {res["message"]}')
 
 
 @cli.command()
 def fetch_contents():
 	sub_log('fetch_contents', 'Start Fetching Contents...')
+	try:
+		response = requests.get(f"{conf['remote']['url']}/fetch_contents?token={conf['remote']['token']}")
+		# If the response was successful, no Exception will be raised
+		response.raise_for_status()
+	except HTTPError as http_err:
+		sub_err('fetch_contents', f'HTTP error occurred: {repr(http_err)}')
+	except Exception as err:
+		sub_err('fetch_contents', f'Other error occurred: {repr(err)}')
+	else:
+		res = response.json()
+		sub_log('fetch_contents', f'RESPONSE: {res}')
+		if res['code'] == 1: sub_log('fetch_contents', 'Connectivity test passed')
+		else: 
+			sub_err('fetch_contents', f'Fetch contents failed, Message: {res["message"]}')
+			return
+		
 
 
 if __name__ == '__main__':
