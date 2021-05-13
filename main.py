@@ -10,6 +10,7 @@ import shutil
 root_dir = os.path.split(os.path.abspath(__file__))[0]
 config_dir = os.path.join(root_dir, 'config.yml')
 wp_dir = os.path.join(root_dir, './workplace/')
+readme_dir = os.path.join(wp_dir, 'README.md')
 conf = {}
 cmd_name = 'main'
 
@@ -54,12 +55,28 @@ def fetch_contents():
 	else:
 		res = response.json()
 		clog(f'RESPONSE: {res}')
-		if res['code'] == 1: clog('connectivity test passed')
+		if res['code'] == 1: csuccess('connectivity test passed')
 		else: 
 			cerr(f'fetch contents failed, message: {res["message"]}')
 			return
+		git_branch()
 
 #### Fetching End ####
+
+#### local git start ####
+
+def git_repo():
+	return git.Repo(wp_dir)
+
+def git_branch():
+	wp_git = git_repo().git
+	return wp_git.branch()
+
+def git_branch_create(branch:str):
+	wp_git = git_repo().git
+	return wp_git.branch(branch)
+
+#### Local git end ####
 
 #### Command Line Interface (CLI) Start ####
 
@@ -83,7 +100,15 @@ def init():
 		return
 	try:
 		git.Repo.init(path=wp_dir)
-		csuccess('initialization success.')
+		csuccess('git initialization success.')
+		with open(readme_dir, 'w+') as f:
+			f.write('This file is created automatically by [typexo-cli](https://github.com/JeffersonQin/typexo-cli)')
+		csuccess('write file test success.')
+		add_res = git_repo().index.add(items=['README.md'])
+		clog(f'add README.md: \n{add_res}')
+		commit_res = git_repo().index.commit('Initial auto commit by typexo.')
+		clog(f'commit (initial auto): \n{commit_res}')
+		clog(f'branch info: \n{git_branch()}')
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 
@@ -179,6 +204,13 @@ def merge():
 
 
 @cli.command()
+def rm_prod():
+	'''
+	Delete PROD branch in your local repo
+	'''
+
+
+@cli.command()
 def push():
 	'''
 	Update remote refs along with associated objects
@@ -212,14 +244,18 @@ def prod_test():
 		if res['code'] == 1: clog('test', 'connectivity test passed')
 		else: cerr(f'Connectivity test failed, Message: {res["message"]}')
 
+# -------------- TESTING -------------- #
 
+@cli.command()
+def test():
+	git_branch_create('prod')
 
 #### Command Line Interface (CLI) End ####
 
 if __name__ == '__main__':
 	# main log
 	click.echo(click.style('[typexo-cli-main]', bg='blue', fg='white'), nl=False)
-	click.echo('read configuration...')
+	click.echo(' read configuration...')
 	# read configuration
 	read_conf()
 	click.echo(click.style('-' * 40, fg = 'bright_blue'))
