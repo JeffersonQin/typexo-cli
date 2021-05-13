@@ -6,11 +6,21 @@ import git
 import sys
 import shutil
 
-# Initialization for paths & caches
+# initialize paths & caches
 root_dir = os.path.split(os.path.abspath(__file__))[0]
 config_dir = os.path.join(root_dir, 'config.yml')
 wp_dir = os.path.join(root_dir, './workplace/')
 readme_dir = os.path.join(wp_dir, 'README.md')
+# configure content
+wp_pull_content = {
+	'folders': [
+		'posts', 'pages'
+	],
+	'files': [
+		'metas.json', 'relationship.json'
+	]
+}
+# initialize other variable
 conf = {}
 cmd_name = 'main'
 
@@ -72,9 +82,13 @@ def git_branch():
 	wp_git = git_repo().git
 	return wp_git.branch()
 
-def git_branch_create(branch:str):
+def git_branch_create(branch: str):
 	wp_git = git_repo().git
 	return wp_git.branch(branch)
+
+def git_checkout(branch: str):
+	wp_git = git_repo().git
+	return wp_git.checkout(branch)
 
 #### Local git end ####
 
@@ -96,7 +110,7 @@ def init():
 	clog('initializing workplace...')
 	if not os.path.exists(wp_dir): os.mkdir(wp_dir)
 	if os.listdir(wp_dir) != []:
-		cerr('workplace folder is not empty.')
+		cerr('workplace folder is not empty. Try "rm" command first.')
 		return
 	try:
 		git.Repo.init(path=wp_dir)
@@ -157,6 +171,40 @@ def pull():
 	cmd_name = sys._getframe().f_code.co_name
 	
 	clog('pulling from PROD environment...')
+	try:
+		# PREREQUISITE: changes are staged, master branch clean
+		
+		# PREREQUISITE: make sure that `prod` branch does not exist 
+		# get initial branches
+		branch_res = git_branch()
+		clog(f'checking branches: \n{branch_res}')
+		# check whether `prod` branch exist
+		for branch in branch_res.split('\n'):
+			if branch == '* prod' or branch == '  prod':
+				cerr(f'"prod" branch already exist. either use "rm-prod" to delete the branch, or resolve the previous merge.')
+				return
+		# create `prod` branch
+		cb_res = git_branch_create('prod')
+		csuccess('create "prod" branch success.')
+		# check branch status
+		branch_res = git_branch()
+		clog(f'branches: \n{branch_res}')
+		# checkout to prod branch
+		git_checkout('prod')
+		csuccess('checkout to "prod" success.')
+		# check branch status after checkout
+		branch_res = git_branch()
+		clog(f'branches: \n{branch_res}')
+		# delete all files except `.git`
+		for sub_dir in os.listdir(wp_dir):
+			if os.path.isdir(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_pull_content['folders']): 
+				shutil.rmtree(os.path.join(wp_dir, sub_dir))
+			if os.path.isfile(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_pull_content['files']):
+				os.remove(os.path.join(wp_dir, sub_dir))
+		# write files in
+
+	except Exception as e:
+		cerr(f'pulling failed. error: {repr(e)}')
 
 
 @cli.command()
