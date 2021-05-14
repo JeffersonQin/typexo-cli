@@ -33,12 +33,13 @@ wp_essential_structure = {
 		'posts', 'pages', 'post_drafts', 'page_drafts'
 	],
 	'files': [
-		'metas.json', 'relationship.json'
+		'metas.json', 'relationships-generated.json'
 	]
 }
 
-# configure items exclude in content metadata
+# configure items exclude in metadata
 content_meta_exclude = ['cid', 'order', 'commentsNum', 'text', 'views']
+meta_meta_exclude = ['count', 'order']
 
 # initialize other variable
 set_global('conf', {})
@@ -46,7 +47,7 @@ set_global('cmd_name', 'main')
 
 def read_conf():
 	# Read configuration
-	with open(config_dir, 'r') as f:
+	with open(config_dir, 'r', encoding='utf8') as f:
 		contents = f.read()
 		set_global('conf', yaml.load(contents, Loader=yaml.FullLoader))
 
@@ -65,7 +66,7 @@ def fetch_resource(resource: str):
 	download_file(f"{get_global('conf')['remote']['url']}/fetch_{resource}?token={get_global('conf')['remote']['token']}", file_dir)
 	
 	try:
-		with open(file_dir, 'r') as f:
+		with open(file_dir, 'r', encoding='utf8') as f:
 			res = json.load(f)
 			if res['code'] == 1: 
 				csuccess(f'connectivity test passed, message: {res["message"]}')
@@ -96,12 +97,14 @@ def check_dirs():
 		return -1
 
 
-def write_contents(data: list):
+def dump_contents(content_data: list, meta_data: list, pair_data: dict):
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
-	clog('writing contents...')
+	clog('dumping contents...')
 	try:
-		for item in data:
+		for item in content_data:
+			cid = item['cid']
+			# obtain content			
 			content = str(item['text'])
 			# format content
 			if content.startswith('<!--markdown-->'):
@@ -124,8 +127,10 @@ def write_contents(data: list):
 				if exclude in item.keys():
 					item.pop(exclude)
 			# format the metas for yml
+			# format time
 			item['created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(item['created']))
 			item['modified'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(item['modified']))
+			# format booleans
 			if 'allowComment' in item.keys():
 				if item['allowComment'] == '1':
 					item['allowComment'] = True
@@ -138,19 +143,90 @@ def write_contents(data: list):
 				if item['allowFeed'] == '1':
 					item['allowFeed'] = True
 				else: item['allowFeed'] = False
+			# format nulls
 			for key in item.keys():
 				if item[key] == None: item[key] = ''
+			# create key if not exist
+			if str(cid) not in pair_data.keys():
+				pair_data[str(cid)] = {'mids': []}
+			# match cid with path
+			pair_data[str(cid)]['path'] = f'/{type}/{create_year}/{create_month}/{file_name}.md'
+			# get tags & categories
+			tags = []
+			categories = []
+			for mid in pair_data[str(cid)]['mids']:
+				mid_meta = meta_data[str(mid)]
+				if mid_meta['type'] == 'tag': tags.append(mid_meta['name'])
+				if mid_meta['type'] == 'category': categories.append(mid_meta['name'])
+			tags.sort()
+			categories.sort()
+			item['tags'] = tags
+			item['categories'] = categories
+			
 			meta = yaml.dump(item, allow_unicode=True)
-			# start writing
-			with open(os.path.join(mon_dir, f'{file_name}.md'), 'w+') as f:
+			# start dumping
+			with open(os.path.join(mon_dir, f'{file_name}.md'), 'w+', encoding='utf8') as f:
 				f.write('---\n')
 				f.write(meta)
 				f.write('---\n')
 				f.write(content)
 			csuccess(f'success: /{type}/{create_year}/{create_month}/{file_name}.md')
+		clog('start dumping relationships...')
+		json.dump(pair_data, open(os.path.join(wp_dir, 'relationships-generated.json'), 'w+', encoding='utf8'),
+					sort_keys=True,
+					indent='\t',
+					ensure_ascii=False,
+					separators=(',', ': '))
+		csuccess(f'success: dumping finished.')
 		csuccess(f'success: pulling finished.')
 	except Exception as e:
 		cerr(f'error: /{type}/{create_year}/{create_month}/{file_name}.md')
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		return -1
+
+def dump_metas(meta_data: list):
+	set_global('cmd_name', sys._getframe().f_code.co_name)
+	
+	clog('dumping metadata...')
+	res = {}
+	try:
+		for meta in meta_data:
+			# get & pop mid attribute
+			mid = meta['mid']
+			meta.pop('mid')
+			# exclude some unneeded meta data
+			for exclude in meta_meta_exclude:
+				if exclude in meta.keys():
+					meta.pop(exclude)
+			# reorganize data structure
+			res[str(mid)] = meta
+			csuccess(f'read {meta["type"]}: {meta["name"]}')
+		# dump metadata to file
+		json.dump(res, open(os.path.join(wp_dir, 'metas.json'), 'w+', encoding='utf8'),
+					sort_keys=True,
+					indent='\t',
+					ensure_ascii=False,
+					separators=(',', ': '))
+		csuccess('success: metadata dumped.')
+		return res
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		return -1
+
+def format_relationships(pair_data: list):
+	set_global('cmd_name', sys._getframe().f_code.co_name)
+	
+	try:
+		res = {}
+		for pair in pair_data:
+			cid = pair['cid']
+			if str(cid) not in res.keys():
+				res[str(cid)] = {'mids': []}
+			res[str(cid)]['mids'].append(pair['mid'])
+		return res
+	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		return -1
@@ -203,7 +279,7 @@ def init():
 		git.Repo.init(path=wp_dir)
 		csuccess('git initialization success.')
 		# TODO: write file structure
-		with open(readme_dir, 'w+') as f:
+		with open(readme_dir, 'w+', encoding='utf8') as f:
 			f.write('This file is created automatically by [typexo-cli](https://github.com/JeffersonQin/typexo-cli)')
 		csuccess('write file test success.')
 		add_res = git_repo().index.add(items=['README.md'])
@@ -293,20 +369,38 @@ def pull():
 			if os.path.isfile(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_essential_structure['files']):
 				os.remove(os.path.join(wp_dir, sub_dir))
 		# ---------------------------- #
-		# writing section start
+		# dumping section start
 		# check structure
 		res = check_dirs()
 		if res == -1:
 			cerr('INVALID FILE STRUCTURE, exiting program.')
 			return
-		# content
-		data = fetch_resource('contents')
-		if data is None:
-			cerr('DATA FETCHING FAILED, exiting program.')
+		# meta
+		meta_data = fetch_resource('metas')
+		if meta_data is None:
+			cerr('META FETCHING FAILED, exiting program.')
 			return
-		res = write_contents(data)
+		meta_data = dump_metas(meta_data)
+		if meta_data == -1:
+			cerr('META DUMPING FAILED, exiting program')
+			return
+		# relationship
+		pair_data = fetch_resource('relationships')
+		if pair_data is None:
+			cerr('RELATIONSHIP FETCHING FAILED, exiting program.')
+			return
+		pair_data = format_relationships(pair_data)
+		if pair_data == -1:
+			cerr('RELATIONSHIP FORMATTING FAILED, exiting program.')
+			return
+		# content
+		content_data = fetch_resource('contents')
+		if content_data is None:
+			cerr('CONTENT FETCHING FAILED, exiting program.')
+			return
+		res = dump_contents(content_data, meta_data=meta_data, pair_data=pair_data)
 		if res == -1:
-			cerr('DATA WRITING FAILED, exiting program.')
+			cerr('CONTENT DUMPING FAILED, exiting program.')
 			return
 
 	except Exception as e:
