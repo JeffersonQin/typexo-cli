@@ -14,9 +14,19 @@ import traceback
 
 # initialize paths & caches
 root_dir = os.path.split(os.path.abspath(__file__))[0]
+lib_dir = os.path.join(root_dir, './lib/')
 config_dir = os.path.join(root_dir, 'config.yml')
 wp_dir = os.path.join(root_dir, './workplace/')
 readme_dir = os.path.join(wp_dir, 'README.md')
+
+# import lib
+sys.path.insert(0, lib_dir)
+from utils import *
+from globalvar import *
+
+# initialize global var
+global_init()
+
 # configure structure
 wp_essential_structure = {
 	'folders': [
@@ -26,40 +36,24 @@ wp_essential_structure = {
 		'metas.json', 'relationship.json'
 	]
 }
+
 # configure items exclude in content metadata
 content_meta_exclude = ['cid', 'order', 'commentsNum', 'text', 'views']
+
 # initialize other variable
-conf = {}
-cmd_name = 'main'
+set_global('conf', {})
+set_global('cmd_name', 'main')
 
 def read_conf():
 	# Read configuration
 	with open(config_dir, 'r') as f:
 		contents = f.read()
-		global conf
-		conf = yaml.load(contents, Loader=yaml.FullLoader)
-
-#### Logging Start ####
-
-def clog(message: str):
-	click.echo(click.style(f"[{cmd_name}]", bg='magenta', fg='white'), nl=False)
-	click.echo(f" {message}")
-
-def cerr(message: str):
-	click.echo(click.style(f"[{cmd_name}]", bg='magenta', fg='white'), nl=False)
-	click.echo(click.style(f" {message}", fg = 'bright_red'))
-
-def csuccess(message: str):
-	click.echo(click.style(f"[{cmd_name}]", bg='magenta', fg='white'), nl=False)
-	click.echo(click.style(f" {message}", fg = 'green'))
-
-#### Logging End ####
+		set_global('conf', yaml.load(contents, Loader=yaml.FullLoader))
 
 #### Fetching Start ####
 
 def fetch_resource(resource: str):
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog(f'fetching {resource}')
 
@@ -68,7 +62,7 @@ def fetch_resource(resource: str):
 
 	if not os.path.exists(cache_dir): os.mkdir(cache_dir)
 
-	download_file(f"{conf['remote']['url']}/fetch_{resource}?token={conf['remote']['token']}", file_dir)
+	download_file(f"{get_global('conf')['remote']['url']}/fetch_{resource}?token={get_global('conf')['remote']['token']}", file_dir)
 	
 	try:
 		with open(file_dir, 'r') as f:
@@ -85,81 +79,10 @@ def fetch_resource(resource: str):
 	
 #### Fetching End ####
 
-#### utilities start ####
-
-def download_file(url, dir):
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
-
-	clog(f'start downloading: {url} => {dir}')
-	try:
-		# define request headers
-		headers = {'Proxy-Connection':'keep-alive'}
-		# start and block request
-		r = requests.get(url, stream=True, headers=headers)
-		# obtain content length
-		length = int(r.headers['content-length'])
-		clog(f'file size: {size_description(length)}')
-		# start writing
-		f = open(dir, 'wb+')
-		# show in progressbar
-		with click.progressbar(label="Downloading from remote: ", length=length) as bar:
-			for chunk in r.iter_content(chunk_size = 512):
-				if chunk:
-					f.write(chunk)
-					bar.update(len(chunk))
-		csuccess('Download Complete.')
-		f.close()
-	except Exception as err:
-		cerr(f'error: {repr(err)}')
-		traceback.print_exc()
-
-
-def size_description(size):
-	'''
-	Taken and modified from https://blog.csdn.net/wskzgz/article/details/99293181
-	'''
-	def strofsize(integer, remainder, level):
-		if integer >= 1024:
-			remainder = integer % 1024
-			integer //= 1024
-			level += 1
-			return strofsize(integer, remainder, level)
-		else:
-			return integer, remainder, level
-
-	units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-	integer, remainder, level = strofsize(size, 0, 0)
-	if level + 1 > len(units):
-		level = -1
-	return ( '{}.{:>03d} {}'.format(integer, remainder, units[level]) )
-
-
-def slugify(value, allow_unicode=True):
-	'''
-	Taken and modified from django/utils/text.py
-	Copyright (c) Django Software Foundation and individual contributors.
-	All rights reserved.
-	Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
-	dashes to single dashes. Remove characters that aren't alphanumerics,
-	underscores, or hyphens. Convert to lowercase. Also strip leading and
-	trailing whitespace, dashes, and underscores.
-	'''
-	value = str(value)
-	if allow_unicode:
-		value = unicodedata.normalize('NFKC', value)
-	else:
-		value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
-	value = re.sub(r'[^\w\s-]', '', value.lower())
-	return re.sub(r'[-\s]+', '-', value).strip('-_')
-
-#### utilities end ####
-
 #### localize start ####
 
 def check_dirs():
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('checking essential structure...')
 	try:
@@ -174,8 +97,7 @@ def check_dirs():
 
 
 def write_contents(data: list):
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
 	clog('writing contents...')
 	try:
@@ -270,8 +192,7 @@ def init():
 	'''
 	Initialize a git version control workplace from nothing
 	'''
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('initializing workplace...')
 	if not os.path.exists(wp_dir): os.mkdir(wp_dir)
@@ -300,8 +221,7 @@ def rm():
 	'''
 	Delete the whole workplace
 	'''
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	if not os.path.exists(wp_dir):
 		cerr('workplace folder does not exist.')
@@ -325,8 +245,7 @@ def clone():
 	'''
 	Clone the workplace from remote repo
 	'''
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('cloning from remote repo...')
 
@@ -336,8 +255,7 @@ def pull():
 	'''
 	Pull the workplace from PROD environment
 	'''
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
 	clog('pulling from PROD environment...')
 	try:
@@ -401,8 +319,7 @@ def status():
 	'''
 	Check the current status of workplace
 	'''
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('checking status of workplace...')
 
@@ -412,8 +329,7 @@ def add():
 	'''
 	Add file contents to the index
 	'''
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('adding file contents to index...')
 
@@ -423,8 +339,7 @@ def commit():
 	'''
 	Record changes to the repository
 	'''
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('recoding changes...')
 
@@ -434,8 +349,7 @@ def merge():
 	'''
 	Merge the PROD environment and local repo
 	'''
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('merging prod environment with local repo...')
 
@@ -452,8 +366,7 @@ def push():
 	'''
 	Update remote refs along with associated objects
 	'''
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('pushing to remote')
 
@@ -463,12 +376,11 @@ def prod_test():
 	'''
 	test connectvity of production environment
 	'''
-	global cmd_name
-	cmd_name = sys._getframe().f_code.co_name
+	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('testing connectivity...')
 	try:
-		response = requests.get(f"{conf['remote']['url']}/welcome?token={conf['remote']['token']}")
+		response = requests.get(f"{get_global('conf')['remote']['url']}/welcome?token={get_global('conf')['remote']['token']}")
 		# If the response was successful, no Exception will be raised
 		response.raise_for_status()
 	except HTTPError as http_err:

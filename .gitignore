@@ -2,3 +2,4 @@ config.yml
 .vscode/
 workplace/
 cache
+__pycache__/
