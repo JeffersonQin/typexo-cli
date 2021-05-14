@@ -80,7 +80,7 @@ def init():
 		cerr('workplace folder is not empty. Try "rm" command first.')
 		return
 	try:
-		git.Repo.init(path=wp_dir)
+		git_init_subprocess()
 		csuccess('git initialization success.')
 		# TODO: write file structure
 		with open(readme_dir, 'w+', encoding='utf8') as f:
@@ -141,31 +141,30 @@ def pull():
 	try:
 		# PREREQUISITE: changes are staged, current branch clean
 		status_res = git_status_native()
-		clog(f'git status: \n{status_res}')
+		git_status_subprocess()
 		if not status_res.split('\n')[1] == 'nothing to commit, working tree clean':
 			cerr('working tree not clean, make sure that all the changes are staged and committed.')
 			return
-		# PREREQUISITE: make sure that `prod` branch does not exist
+		# PREREQUISITE: make sure that `prod` branch exists
 		# get initial branches
 		branch_res = git_branch()
 		clog(f'checking branches: \n{branch_res}')
 		# check whether `prod` branch exist
-		for branch in branch_res.split('\n'):
-			if branch == '* prod' or branch == '  prod':
-				cerr(f'"prod" branch already exist. either use "rm-prod" to delete the branch, or resolve the previous merge.')
-				return
-		# create `prod` branch
-		cb_res = git_branch_create('prod')
-		csuccess('create "prod" branch success.')
+		if '* prod' not in branch_res.split('\n') and '  prod' not in branch_res.split('\n'):
+			clog('"prod" branch does not exist, creating...')
+			# create `prod` branch
+			cb_res = git_create_branch_subprocess('prod')
+			csuccess('create "prod" branch success.')
+		else: csuccess('"prod" branch exists.')
 		# check branch status
-		branch_res = git_branch()
-		clog(f'branches: \n{branch_res}')
+		clog('branches: ')
+		git_branch_subprocess()
 		# checkout to prod branch
-		git_checkout('prod')
+		git_checkout_subprocess('prod')
 		csuccess('checkout to "prod" success.')
 		# check branch status after checkout
-		branch_res = git_branch()
-		clog(f'branches: \n{branch_res}')
+		clog('branches: ')
+		git_branch_subprocess()
 		# delete all files except `.git`
 		for sub_dir in os.listdir(wp_dir):
 			if os.path.isdir(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_essential_structure['folders']): 
@@ -206,7 +205,27 @@ def pull():
 		if res == -1:
 			cerr('CONTENT DUMPING FAILED, exiting program.')
 			return
-
+		# ---------------------------- #
+		# Check status
+		clog('git status')
+		git_status_subprocess()
+		clog('git add .')
+		git_add_subprocess()
+		clog('git commit')
+		git_commit_subprocess(f'Pull from PROD: {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}')
+		clog('git checkout master')
+		git_checkout_subprocess('master')
+		clog('git merge prod')
+		git_merge_subprocess('prod')
+		clog('git status')
+		git_status_subprocess()
+		diff = git_diff()
+		clog(f'diff after merge: {diff}')
+		if diff:
+			cerr('CONFLICT OCCURRED DURING MERGE. please merge by `merge` command after the conflict is resolved.')
+			return
+		csuccess('pull success.')
+		clog('NOTE: PLEASE DO NOT DELETE THE `prod` BRANCH, THIS BRANCH IS USED TO MERGE THE PULL FROM PROD IN THE FUTURE.')
 	except Exception as e:
 		cerr(f'pulling failed. error: {repr(e)}')
 		traceback.print_exc()
@@ -220,6 +239,7 @@ def status():
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('checking status of workplace...')
+	git_status_subprocess()
 
 
 @cli.command()
@@ -293,10 +313,25 @@ def prod_test():
 		if res['code'] == 1: clog('test', 'connectivity test passed')
 		else: cerr(f'Connectivity test failed, Message: {res["message"]}')
 
+@cli.command()
+def fix_git_utf8():
+	'''
+	Fix utf-8 encoding error of git
+	'''
+	set_global('cmd_name', sys._getframe().f_code.co_name)
+
+	clog('WARNING:')
+	click.echo('IMPORTANT: this command will configure the git on your system. Continue? [y/n] ', nl=False)
+	user_in = input()
+
+	if (user_in != 'y' and user_in != 'Y'): return
+	git_fix_utf8()
+
 # -------------- TESTING -------------- #
 
 @cli.command()
 def test():
+	git_add_subprocess()
 	pass
 
 #### Command Line Interface (CLI) End ####
