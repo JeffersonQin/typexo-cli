@@ -9,6 +9,7 @@ import time
 import re
 import unicodedata
 import json
+import traceback
 
 
 # initialize paths & caches
@@ -16,15 +17,17 @@ root_dir = os.path.split(os.path.abspath(__file__))[0]
 config_dir = os.path.join(root_dir, 'config.yml')
 wp_dir = os.path.join(root_dir, './workplace/')
 readme_dir = os.path.join(wp_dir, 'README.md')
-# configure content
-wp_pull_content = {
+# configure structure
+wp_essential_structure = {
 	'folders': [
-		'posts', 'pages'
+		'posts', 'pages', 'post_drafts', 'page_drafts'
 	],
 	'files': [
 		'metas.json', 'relationship.json'
 	]
 }
+# configure items exclude in content metadata
+content_meta_exclude = ['cid', 'order', 'commentsNum', 'text', 'views']
 # initialize other variable
 conf = {}
 cmd_name = 'main'
@@ -70,7 +73,6 @@ def fetch_resource(resource: str):
 	try:
 		with open(file_dir, 'r') as f:
 			res = json.load(f)
-			clog(f'RESPONSE: {res}')
 			if res['code'] == 1: 
 				csuccess(f'connectivity test passed, message: {res["message"]}')
 				return res['data']
@@ -79,6 +81,7 @@ def fetch_resource(resource: str):
 				return None		
 	except Exception as e:
 		cerr(f'error occurred: {repr(e)}')
+		traceback.print_exc()
 	
 #### Fetching End ####
 
@@ -90,42 +93,85 @@ def download_file(url, dir):
 
 	clog(f'start downloading: {url} => {dir}')
 	try:
+		# define request headers
 		headers = {'Proxy-Connection':'keep-alive'}
+		# start and block request
 		r = requests.get(url, stream=True, headers=headers)
-		length = float(r.headers['content-length'])
+		# obtain content length
+		length = int(r.headers['content-length'])
+		clog(f'file size: {size_description(length)}')
+		# start writing
 		f = open(dir, 'wb+')
-		# download size
-		count = 0
+		# show in progressbar
 		with click.progressbar(label="Downloading from remote: ", length=length) as bar:
 			for chunk in r.iter_content(chunk_size = 512):
 				if chunk:
 					f.write(chunk)
 					bar.update(len(chunk))
+		csuccess('Download Complete.')
 		f.close()
 	except Exception as err:
 		cerr(f'error: {repr(err)}')
+		traceback.print_exc()
+
+
+def size_description(size):
+	'''
+	Taken and modified from https://blog.csdn.net/wskzgz/article/details/99293181
+	'''
+	def strofsize(integer, remainder, level):
+		if integer >= 1024:
+			remainder = integer % 1024
+			integer //= 1024
+			level += 1
+			return strofsize(integer, remainder, level)
+		else:
+			return integer, remainder, level
+
+	units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+	integer, remainder, level = strofsize(size, 0, 0)
+	if level + 1 > len(units):
+		level = -1
+	return ( '{}.{:>03d} {}'.format(integer, remainder, units[level]) )
+
 
 def slugify(value, allow_unicode=True):
-    """
+	'''
 	Taken and modified from django/utils/text.py
 	Copyright (c) Django Software Foundation and individual contributors.
 	All rights reserved.
-    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
-    dashes to single dashes. Remove characters that aren't alphanumerics,
-    underscores, or hyphens. Convert to lowercase. Also strip leading and
-    trailing whitespace, dashes, and underscores.
-    """
-    value = str(value)
-    if allow_unicode:
-        value = unicodedata.normalize('NFKC', value)
-    else:
-        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
-    value = re.sub(r'[^\w\s-]', '', value.lower())
-    return re.sub(r'[-\s]+', '-', value).strip('-_')
+	Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
+	dashes to single dashes. Remove characters that aren't alphanumerics,
+	underscores, or hyphens. Convert to lowercase. Also strip leading and
+	trailing whitespace, dashes, and underscores.
+	'''
+	value = str(value)
+	if allow_unicode:
+		value = unicodedata.normalize('NFKC', value)
+	else:
+		value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+	value = re.sub(r'[^\w\s-]', '', value.lower())
+	return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 #### utilities end ####
 
 #### localize start ####
+
+def check_dirs():
+	global cmd_name
+	cmd_name = sys._getframe().f_code.co_name
+
+	clog('checking essential structure...')
+	try:
+		for dir in wp_essential_structure['folders']:
+			if not os.path.exists(os.path.join(wp_dir, dir)):
+				os.mkdir(os.path.join(wp_dir, dir))
+		csuccess('checking finished.')
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		return -1
+
 
 def write_contents(data: list):
 	global cmd_name
@@ -133,19 +179,48 @@ def write_contents(data: list):
 	
 	clog('writing contents...')
 	try:
-		if not os.path.exists(os.path.join(wp_dir, './posts')):
-			os.mkdir(os.path.join(wp_dir, './posts'))
-		if not os.path.exists(os.path.join(wp_dir, './pages')):
-			os.mkdir(os.path.join(wp_dir, './pages'))
 		for item in data:
+			# obtain essential meta data
 			type = f"{item['type']}s"
 			create_local_time = time.localtime(item['created'])
-			create_year = create_local_time.tm_year
-			create_month = create_local_time.tm_mon
-			title = slugify(item['title'])
-			clog(f'{title}, {create_year}, {create_month}, {type}')
-	except Exception as e:
-		cerr(f'error: {repr(e)}')
+			create_year = str(create_local_time.tm_year)
+			create_month = str(create_local_time.tm_mon)
+			file_name = slugify(item['title'])
+			# dealing with directories
+			base_dir = os.path.join(wp_dir, type)
+			year_dir = os.path.join(base_dir, create_year)
+			mon_dir = os.path.join(year_dir, create_month)
+			# create if not exist
+			if not os.path.exists(year_dir): os.mkdir(year_dir)
+			if not os.path.exists(mon_dir): os.mkdir(mon_dir)
+			# exclude some unneeded meta data
+			for exclude in content_meta_exclude:
+				if exclude in item.keys():
+					item.pop(exclude)
+			# format the metas for yml
+			item['created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(item['created']))
+			item['modified'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(item['modified']))
+			if 'allowComment' in item.keys():
+				if item['allowComment'] == '1':
+					item['allowComment'] = True
+				else: item['allowComment'] = False
+			if 'allowPing' in item.keys():
+				if item['allowPing'] == '1':
+					item['allowPing'] = True
+				else: item['allowPing'] = False
+			if 'allowFeed' in item.keys():
+				if item['allowFeed'] == '1':
+					item['allowFeed'] = True
+				else: item['allowFeed'] = False
+			for key in item.keys():
+				if item[key] == None: item[key] = ''
+			clog(yaml.dump(item, allow_unicode=True))
+			# start writing
+			clog(f'success: /{type}/{create_year}/{create_month}/{file_name}.md')
+	except Exception as e_in:
+		cerr(f'error: /{type}/{create_year}/{create_month}/{file_name}.md')
+		traceback.print_exc()
+		return -1
 
 #### localize end ####
 
@@ -206,6 +281,7 @@ def init():
 		clog(f'branch info: \n{git_branch()}')
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
 
 
 @cli.command()
@@ -230,6 +306,7 @@ def rm():
 		csuccess('delete success.')
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
 
 
 @cli.command()
@@ -282,15 +359,31 @@ def pull():
 		clog(f'branches: \n{branch_res}')
 		# delete all files except `.git`
 		for sub_dir in os.listdir(wp_dir):
-			if os.path.isdir(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_pull_content['folders']): 
+			if os.path.isdir(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_essential_structure['folders']): 
 				shutil.rmtree(os.path.join(wp_dir, sub_dir))
-			if os.path.isfile(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_pull_content['files']):
+			if os.path.isfile(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_essential_structure['files']):
 				os.remove(os.path.join(wp_dir, sub_dir))
-		# write files in
+		# ---------------------------- #
+		# writing section start
+		# check structure
+		res = check_dirs()
+		if res == -1:
+			cerr('INVALID FILE STRUCTURE, exiting program.')
+			return
+		# content
+		data = fetch_resource('contents')
+		if data is None:
+			cerr('DATA FETCHING FAILED, exiting program.')
+			return
+		res = write_contents(data)
+		if res == -1:
+			cerr('DATA WRITING FAILED, exiting program.')
+			return
 
 	except Exception as e:
 		cerr(f'pulling failed. error: {repr(e)}')
-
+		traceback.print_exc()
+		
 
 @cli.command()
 def status():
@@ -369,8 +462,10 @@ def prod_test():
 		response.raise_for_status()
 	except HTTPError as http_err:
 		cerr(f'HTTP error occurred: {repr(http_err)}')
+		traceback.print_exc()
 	except Exception as err:
 		cerr(f'other error occurred: {repr(err)}')
+		traceback.print_exc()
 	else:
 		res = response.json()
 		clog(f'RESPONSE: {res}')
@@ -381,11 +476,7 @@ def prod_test():
 
 @cli.command()
 def test():
-	data = fetch_resource('contents')
-	if data is None:
-		cerr('DATA FETCHING FAILED, exiting program.')
-		return
-	write_contents(data)
+	pass
 
 #### Command Line Interface (CLI) End ####
 
