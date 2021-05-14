@@ -180,6 +180,10 @@ def write_contents(data: list):
 	clog('writing contents...')
 	try:
 		for item in data:
+			content = str(item['text'])
+			# format content
+			if content.startswith('<!--markdown-->'):
+				content = content[15:]
 			# obtain essential meta data
 			type = f"{item['type']}s"
 			create_local_time = time.localtime(item['created'])
@@ -214,11 +218,18 @@ def write_contents(data: list):
 				else: item['allowFeed'] = False
 			for key in item.keys():
 				if item[key] == None: item[key] = ''
-			clog(yaml.dump(item, allow_unicode=True))
+			meta = yaml.dump(item, allow_unicode=True)
 			# start writing
-			clog(f'success: /{type}/{create_year}/{create_month}/{file_name}.md')
-	except Exception as e_in:
+			with open(os.path.join(mon_dir, f'{file_name}.md'), 'w+') as f:
+				f.write('---\n')
+				f.write(meta)
+				f.write('---\n')
+				f.write(content)
+			csuccess(f'success: /{type}/{create_year}/{create_month}/{file_name}.md')
+		csuccess(f'success: pulling finished.')
+	except Exception as e:
 		cerr(f'error: /{type}/{create_year}/{create_month}/{file_name}.md')
+		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		return -1
 
