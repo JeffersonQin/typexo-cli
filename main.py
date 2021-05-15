@@ -131,13 +131,14 @@ def clone():
 
 
 @cli.command()
-def pull():
+@click.argument('source', type=click.Choice(['prod', 'test']))
+def pull(source: str):
 	'''
-	Pull the workplace from PROD environment
+	Pull the workplace from prod / test environment
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
-	
-	clog('pulling from PROD environment...')
+
+	clog(f'pulling from {source} environment...')
 	try:
 		# PREREQUISITE: changes are staged, current branch clean
 		status_res = git_status_native()
@@ -145,23 +146,23 @@ def pull():
 		if not status_res.split('\n')[1] == 'nothing to commit, working tree clean':
 			cerr('working tree not clean, make sure that all the changes are staged and committed.')
 			return
-		# PREREQUISITE: make sure that `prod` branch exists
+		# PREREQUISITE: make sure that `source` branch exists
 		# get initial branches
 		branch_res = git_branch()
 		clog(f'checking branches: \n{branch_res}')
-		# check whether `prod` branch exist
-		if '* prod' not in branch_res.split('\n') and '  prod' not in branch_res.split('\n'):
-			clog('"prod" branch does not exist, creating...')
-			# create `prod` branch
-			cb_res = git_create_branch_subprocess('prod')
-			csuccess('create "prod" branch success.')
-		else: csuccess('"prod" branch exists.')
+		# check whether `source` branch exist
+		if f'* {source}' not in branch_res.split('\n') and f'  {source}' not in branch_res.split('\n'):
+			clog(f'"{source}" branch does not exist, creating...')
+			# create `source` branch
+			cb_res = git_create_branch_subprocess(source)
+			csuccess(f'create "{source}" branch success.')
+		else: csuccess(f'"{source}" branch exists.')
 		# check branch status
 		clog('branches: ')
 		git_branch_subprocess()
-		# checkout to prod branch
-		git_checkout_subprocess('prod')
-		csuccess('checkout to "prod" success.')
+		# checkout to source branch
+		git_checkout_subprocess(source)
+		csuccess(f'checkout to "{source}" success.')
 		# check branch status after checkout
 		clog('branches: ')
 		git_branch_subprocess()
@@ -212,11 +213,11 @@ def pull():
 		clog('git add .')
 		git_add_subprocess()
 		clog('git commit')
-		git_commit_subprocess(f'Pull from PROD: {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}')
+		git_commit_subprocess(f'Pull from "{source}": {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}')
 		clog('git checkout master')
 		git_checkout_subprocess('master')
-		clog('git merge prod')
-		git_merge_subprocess('prod')
+		clog(f'git merge {source}')
+		git_merge_subprocess(source)
 		clog('git status')
 		git_status_subprocess()
 		diff = git_diff()
@@ -225,7 +226,11 @@ def pull():
 			cerr('CONFLICT OCCURRED DURING MERGE. please merge by `merge` command after the conflict is resolved.')
 			return
 		csuccess('pull success.')
-		clog('NOTE: PLEASE DO NOT DELETE THE `prod` BRANCH, THIS BRANCH IS USED TO MERGE THE PULL FROM PROD IN THE FUTURE.')
+		if source == 'prod':
+			clog('NOTE: PLEASE DO NOT DELETE THE `prod` BRANCH, THIS BRANCH IS USED TO MERGE THE PULL FROM PROD IN THE FUTURE.')
+		if source == 'test':
+			clog('auto deleting the `test` branch...')
+			# TODO: delete test branch
 	except Exception as e:
 		cerr(f'pulling failed. error: {repr(e)}')
 		traceback.print_exc()
@@ -270,13 +275,6 @@ def merge():
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('merging prod environment with local repo...')
-
-
-@cli.command()
-def rm_prod():
-	'''
-	Delete PROD branch in your local repo
-	'''
 
 
 @cli.command()
