@@ -60,6 +60,9 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict):
 	create_year = None
 	create_month = None
 	file_name = None
+
+	dir_cid_pair = {}
+
 	try:
 		for item in content_data:
 			cid = item['cid']
@@ -109,7 +112,7 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict):
 			if str(cid) not in pair_data.keys():
 				pair_data[str(cid)] = {'mids': []}
 			# match cid with path
-			pair_data[str(cid)]['path'] = f'/{type}/{create_year}/{create_month}/{file_name}.md'
+			dir_cid_pair[f'/{type}/{create_year}/{create_month}/{file_name}.md'] = cid
 			# get tags & categories
 			tags = []
 			categories = []
@@ -130,12 +133,12 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict):
 				f.write('---\n')
 				f.write(content)
 			csuccess(f'success: /{type}/{create_year}/{create_month}/{file_name}.md')
-		clog('start dumping relationships...')
-		json.dump(pair_data, open(os.path.join(get_global('wp_dir'), 'relationships-generated.json'), 'w+', encoding='utf8'),
-					sort_keys=True,
-					indent='\t',
-					ensure_ascii=False,
-					separators=(',', ': '))
+		clog('start dumping cids...')
+		json.dump(dir_cid_pair, open(os.path.join(get_global('wp_dir'), 'cids-generated.json'), 'w+', encoding='utf8'),
+								sort_keys=True,
+								indent='\t',
+								ensure_ascii=False,
+								separators=(',', ': '))
 		csuccess(f'success: dumping finished.')
 		csuccess(f'success: pulling finished.')
 	except Exception as e:
@@ -145,10 +148,10 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict):
 		cexit('CONTENT DUMPING FAILED')
 
 
-def dump_metas(meta_data: list):
+def format_metas(meta_data: list):
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
-	clog('dumping metadata...')
+	clog('formating metadata...')
 	res = {}
 	try:
 		for meta in meta_data:
@@ -162,19 +165,41 @@ def dump_metas(meta_data: list):
 			# reorganize data structure
 			res[str(mid)] = meta
 			csuccess(f'read {meta["type"]}: {meta["name"]}')
-		# dump metadata to file
-		json.dump(res, open(os.path.join(get_global('wp_dir'), 'metas.json'), 'w+', encoding='utf8'),
-					sort_keys=True,
-					indent='\t',
-					ensure_ascii=False,
-					separators=(',', ': '))
-		csuccess('success: metadata dumped.')
+		csuccess('success: metadata formatted.')
 		return res
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
-		cexit('META DUMPING FAILED')
+		cexit('META FORMATTING FAILED')
 
+
+def dump_metas(meta_data: list):
+	set_global('cmd_name', sys._getframe().f_code.co_name)
+	
+	clog('dumping metadata...')
+	res = {'tag': {}, 'category': {}}
+	try:
+		for meta in meta_data:
+			name = meta['name']
+			meta_type = meta['type']
+			meta.pop('name')
+			for exclude in get_global('meta_meta_exclude'):
+				if exclude in meta.keys():
+					meta.pop(exclude)
+			res[meta_type][name] = meta
+		# dump metadata to file
+		json.dump(res, open(os.path.join(get_global('wp_dir'), 'metas.json'), 'w+', 
+						encoding='utf8'),
+						sort_keys=True,
+						indent='\t',
+						ensure_ascii=False,
+						separators=(',', ': '))
+		csuccess('success: metadata dumped.')
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		cexit('META DUMPING FAILED')
+		
 
 def format_relationships(pair_data: list):
 	set_global('cmd_name', sys._getframe().f_code.co_name)
