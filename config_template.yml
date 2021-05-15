@@ -1,3 +1,6 @@
 remote:
   token: your-token
   url: your-url-not-ending-with-dash
+test:
+  token: your-token
+  url: your-url-not-ending-with-dash
