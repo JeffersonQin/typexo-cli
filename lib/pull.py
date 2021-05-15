@@ -25,17 +25,17 @@ def check_dirs():
 		
 
 
-def fetch_resource(source: str, resource: str):
+def fetch_database(source: str, database: str):
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
-	clog(f'fetching {resource}')
+	clog(f'fetching {database}')
 
 	cache_dir = os.path.join(get_global('root_dir'), 'cache/')
-	file_dir = os.path.join(cache_dir, f'{resource}.json')
+	file_dir = os.path.join(cache_dir, f'{database}.json')
 
 	if not os.path.exists(cache_dir): os.mkdir(cache_dir)
 
-	download_file(f"{get_global('conf')[source]['url']}/fetch_{resource}?token={get_global('conf')[source]['token']}", file_dir)
+	download_file(f"{get_global('conf')[source]['url']}/fetch?db={database}&token={get_global('conf')[source]['token']}", file_dir)
 	
 	try:
 		with open(file_dir, 'r', encoding='utf8') as f:
@@ -49,7 +49,7 @@ def fetch_resource(source: str, resource: str):
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
-		cexit(f'{source}/{resource} FETCHING FAILED')
+		cexit(f'{source}/{database} FETCHING FAILED')
 
 
 def dump_contents(content_data: list, meta_data: list, pair_data: dict):

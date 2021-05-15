@@ -154,14 +154,14 @@ def pull(source: str):
 		# check structure
 		res = check_dirs()
 		# meta
-		meta_data = fetch_resource(source, 'metas')
+		meta_data = fetch_database(source, 'metas')
 		dump_metas(copy.deepcopy(meta_data))
 		meta_data = format_metas(meta_data)
 		# relationship
-		pair_data = fetch_resource(source, 'relationships')
+		pair_data = fetch_database(source, 'relationships')
 		pair_data = format_relationships(pair_data)
 		# content
-		content_data = fetch_resource(source, 'contents')
+		content_data = fetch_database(source, 'contents')
 		res = dump_contents(content_data, meta_data=meta_data, pair_data=pair_data)
 		# ---------------------------- #
 		clog('git status')
