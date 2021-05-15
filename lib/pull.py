@@ -21,10 +21,11 @@ def check_dirs():
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
-		return -1
+		cexit('INVALID FILE STRUCTURE')
+		
 
 
-def fetch_resource(resource: str):
+def fetch_resource(source: str, resource: str):
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog(f'fetching {resource}')
@@ -34,7 +35,7 @@ def fetch_resource(resource: str):
 
 	if not os.path.exists(cache_dir): os.mkdir(cache_dir)
 
-	download_file(f"{get_global('conf')['remote']['url']}/fetch_{resource}?token={get_global('conf')['remote']['token']}", file_dir)
+	download_file(f"{get_global('conf')[source]['url']}/fetch_{resource}?token={get_global('conf')[source]['token']}", file_dir)
 	
 	try:
 		with open(file_dir, 'r', encoding='utf8') as f:
@@ -44,10 +45,11 @@ def fetch_resource(resource: str):
 				return res['data']
 			else: 
 				cerr(f'fetch contents failed, message: {res["message"]}')
-				return None		
+				raise Exception(f'fetch contents failed, message: {res["message"]}')
 	except Exception as e:
-		cerr(f'error occurred: {repr(e)}')
+		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
+		cexit(f'{source}/{resource} FETCHING FAILED')
 
 
 def dump_contents(content_data: list, meta_data: list, pair_data: dict):
@@ -140,7 +142,7 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict):
 		cerr(f'error: /{type}/{create_year}/{create_month}/{file_name}.md')
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
-		return -1
+		cexit('CONTENT DUMPING FAILED')
 
 
 def dump_metas(meta_data: list):
@@ -171,7 +173,7 @@ def dump_metas(meta_data: list):
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
-		return -1
+		cexit('META DUMPING FAILED')
 
 
 def format_relationships(pair_data: list):
@@ -188,5 +190,5 @@ def format_relationships(pair_data: list):
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
-		return -1
+		cexit('RELATIONSHIP FORMATTING FAILED')
 
