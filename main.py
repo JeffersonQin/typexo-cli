@@ -10,6 +10,7 @@ import re
 import unicodedata
 import json
 import traceback
+import copy
 
 
 # initialize paths & caches
@@ -154,7 +155,8 @@ def pull(source: str):
 		res = check_dirs()
 		# meta
 		meta_data = fetch_resource(source, 'metas')
-		meta_data = dump_metas(meta_data)
+		dump_metas(copy.deepcopy(meta_data))
+		meta_data = format_metas(meta_data)
 		# relationship
 		pair_data = fetch_resource(source, 'relationships')
 		pair_data = format_relationships(pair_data)
