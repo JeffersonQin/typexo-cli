@@ -2,6 +2,7 @@ import git
 import os
 import subprocess
 import sys
+import traceback
 from globalvar import * 
 from echo import *
 
@@ -165,9 +166,13 @@ def git_safe_merge_to_master(branch: str):
 			cerr('CONFLICT OCCURRED DURING MERGE. please merge by `merge` command after the conflict is resolved.')
 			raise Exception('auto merge failed, working tree not clean.')
 		csuccess('merge success.')
-		clog(f'automatically deleting "{branch}" branch...')
-		git_delete_branch_subprocess(branch)
-		csuccess(f'"{branch}" delete success.')
+		if branch == 'prod':
+			clog('NOTE: PLEASE DO NOT DELETE PROD BRANCH, this is used to merge conflcits in the future.')
+			return
+		if branch == 'test':
+			clog(f'automatically deleting "{branch}" branch...')
+			git_delete_branch_subprocess(branch)
+			csuccess(f'"{branch}" delete success.')
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
