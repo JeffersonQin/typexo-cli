@@ -71,7 +71,7 @@ def cli():
 @cli.command()
 def init():
 	'''
-	Initialize a git version control workplace from nothing
+	✅ Initialize a git version control workplace from nothing
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
@@ -100,7 +100,7 @@ def init():
 @cli.command()
 def rm():
 	'''
-	Delete the whole workplace
+	✅ Delete the whole workplace
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
@@ -124,7 +124,7 @@ def rm():
 @cli.command()
 def clone():
 	'''
-	Clone the workplace from remote repo
+	❌ Clone the workplace from remote repo
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
@@ -135,7 +135,7 @@ def clone():
 @click.argument('source', type=click.Choice(['prod', 'test']))
 def pull(source: str):
 	'''
-	Pull the workplace from prod / test environment
+	🚧 Pull the workplace from prod / test environment
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
@@ -179,7 +179,7 @@ def pull(source: str):
 @cli.command()
 def status():
 	'''
-	Check the current status of current branch of workplace
+	✅ Check the current status of current branch of workplace
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
@@ -194,7 +194,7 @@ def status():
 @cli.command()
 def clean_tree():
 	'''
-	Clean working tree: `git commit -am` for current branch
+	✅ Clean working tree: `git commit -am` for current branch
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
@@ -216,7 +216,7 @@ def clean_tree():
 @click.argument('branch', type=click.Choice(['prod', 'test']))
 def merge(branch: str):
 	'''
-	Merge the branch with local repo
+	✅ Merge the branch with local repo
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
@@ -227,7 +227,7 @@ def merge(branch: str):
 @cli.command()
 def push():
 	'''
-	Update remote refs along with associated objects
+	❌ Update remote refs along with associated objects
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
@@ -237,7 +237,7 @@ def push():
 @cli.command()
 def prod_test():
 	'''
-	Test connectvity of production environment
+	✅ Test connectvity of production environment
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
@@ -262,7 +262,7 @@ def prod_test():
 @cli.command()
 def fix_git_utf8():
 	'''
-	Fix utf-8 encoding error of git
+	✅ Fix utf-8 encoding error of git
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
