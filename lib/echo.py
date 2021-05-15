@@ -13,3 +13,7 @@ def cerr(message: str):
 def csuccess(message: str):
 	click.echo(click.style(f"[{get_global('cmd_name')}]", bg='magenta', fg='white'), nl=False)
 	click.echo(click.style(f" {message}", fg = 'green'))
+
+def cexit(message: str):
+	cerr(f'{message}, exiting program.')
+	sys.exit(1)
