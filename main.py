@@ -90,7 +90,7 @@ def init():
 		clog(f'add README.md: \n{add_res}')
 		commit_res = git_repo().index.commit('Initial auto commit by typexo.')
 		clog(f'commit (initial auto): \n{commit_res}')
-		clog(f'branch info: \n{git_branch()}')
+		clog(f'branch info: \n{git_branch_native()}')
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
@@ -140,32 +140,8 @@ def pull(source: str):
 
 	clog(f'pulling from {source} environment...')
 	try:
-		# PREREQUISITE: changes are staged, current branch clean
-		status_res = git_status_native()
-		git_status_subprocess()
-		if not status_res.split('\n')[1] == 'nothing to commit, working tree clean':
-			cerr('working tree not clean, make sure that all the changes are staged and committed.')
-			return
-		# PREREQUISITE: make sure that `source` branch exists
-		# get initial branches
-		branch_res = git_branch()
-		clog(f'checking branches: \n{branch_res}')
-		# check whether `source` branch exist
-		if f'* {source}' not in branch_res.split('\n') and f'  {source}' not in branch_res.split('\n'):
-			clog(f'"{source}" branch does not exist, creating...')
-			# create `source` branch
-			cb_res = git_create_branch_subprocess(source)
-			csuccess(f'create "{source}" branch success.')
-		else: csuccess(f'"{source}" branch exists.')
-		# check branch status
-		clog('branches: ')
-		git_branch_subprocess()
-		# checkout to source branch
-		git_checkout_subprocess(source)
-		csuccess(f'checkout to "{source}" success.')
-		# check branch status after checkout
-		clog('branches: ')
-		git_branch_subprocess()
+		# safe switch to `source` branch
+		git_safe_switch(source)
 		# delete all files except `.git`
 		for sub_dir in os.listdir(wp_dir):
 			if os.path.isdir(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_essential_structure['folders']): 
@@ -176,105 +152,74 @@ def pull(source: str):
 		# dumping section start
 		# check structure
 		res = check_dirs()
-		if res == -1:
-			cerr('INVALID FILE STRUCTURE, exiting program.')
-			return
 		# meta
-		meta_data = fetch_resource('metas')
-		if meta_data is None:
-			cerr('META FETCHING FAILED, exiting program.')
-			return
+		meta_data = fetch_resource(source, 'metas')
 		meta_data = dump_metas(meta_data)
-		if meta_data == -1:
-			cerr('META DUMPING FAILED, exiting program')
-			return
 		# relationship
-		pair_data = fetch_resource('relationships')
-		if pair_data is None:
-			cerr('RELATIONSHIP FETCHING FAILED, exiting program.')
-			return
+		pair_data = fetch_resource(source, 'relationships')
 		pair_data = format_relationships(pair_data)
-		if pair_data == -1:
-			cerr('RELATIONSHIP FORMATTING FAILED, exiting program.')
-			return
 		# content
-		content_data = fetch_resource('contents')
-		if content_data is None:
-			cerr('CONTENT FETCHING FAILED, exiting program.')
-			return
+		content_data = fetch_resource(source, 'contents')
 		res = dump_contents(content_data, meta_data=meta_data, pair_data=pair_data)
-		if res == -1:
-			cerr('CONTENT DUMPING FAILED, exiting program.')
-			return
 		# ---------------------------- #
-		# Check status
 		clog('git status')
 		git_status_subprocess()
 		clog('git add .')
-		git_add_subprocess()
+		git_add_all_subprocess()
 		clog('git commit')
 		git_commit_subprocess(f'Pull from "{source}": {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}')
-		clog('git checkout master')
-		git_checkout_subprocess('master')
-		clog(f'git merge {source}')
-		git_merge_subprocess(source)
-		clog('git status')
-		git_status_subprocess()
-		diff = git_diff()
-		clog(f'diff after merge: {diff}')
-		if diff:
-			cerr('CONFLICT OCCURRED DURING MERGE. please merge by `merge` command after the conflict is resolved.')
-			return
-		csuccess('pull success.')
-		if source == 'prod':
-			clog('NOTE: PLEASE DO NOT DELETE THE `prod` BRANCH, THIS BRANCH IS USED TO MERGE THE PULL FROM PROD IN THE FUTURE.')
-		if source == 'test':
-			clog('auto deleting the `test` branch...')
-			# TODO: delete test branch
+		git_safe_merge_to_master(source)
 	except Exception as e:
 		cerr(f'pulling failed. error: {repr(e)}')
 		traceback.print_exc()
-		
+
 
 @cli.command()
 def status():
 	'''
-	Check the current status of workplace
+	Check the current status of current branch of workplace
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('checking status of workplace...')
-	git_status_subprocess()
+	try:
+		git_status_subprocess()
+	except Exception as e:
+		cerr(f'status check failed. error: {repr(e)}')
+		traceback.print_exc()
 
 
 @cli.command()
-def add():
+def clean_tree():
 	'''
-	Add file contents to the index
+	Clean working tree: `git commit -am` for current branch
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
-	clog('adding file contents to index...')
+	clog('cleaning working tree.')
+	try:
+		clog('status: ')
+		git_status_subprocess()
+		clog('git add .')
+		git_add_all_subprocess()
+		clog('git commit')
+		git_commit_subprocess(f'[Update] {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}')
+		csuccess('working tree cleaned.')
+	except Exception as e:
+		cerr(f'working tree cleaning failed. error: {repr(e)}')
+		traceback.print_exc()
 
 
 @cli.command()
-def commit():
+@click.argument('branch', type=click.Choice(['prod', 'test']))
+def merge(branch: str):
 	'''
-	Record changes to the repository
-	'''
-	set_global('cmd_name', sys._getframe().f_code.co_name)
-
-	clog('recoding changes...')
-
-
-@cli.command()
-def merge():
-	'''
-	Merge the PROD environment and local repo
+	Merge the branch with local repo
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
-	clog('merging prod environment with local repo...')
+	clog(f'merging {branch} environment with local repo...')
+	git_safe_merge_to_master(branch)
 
 
 @cli.command()
@@ -290,7 +235,7 @@ def push():
 @cli.command()
 def prod_test():
 	'''
-	test connectvity of production environment
+	Test connectvity of production environment
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
@@ -311,6 +256,7 @@ def prod_test():
 		if res['code'] == 1: clog('test', 'connectivity test passed')
 		else: cerr(f'Connectivity test failed, Message: {res["message"]}')
 
+
 @cli.command()
 def fix_git_utf8():
 	'''
@@ -329,7 +275,7 @@ def fix_git_utf8():
 
 @cli.command()
 def test():
-	git_add_subprocess()
+	git_add_all_subprocess()
 	pass
 
 #### Command Line Interface (CLI) End ####
