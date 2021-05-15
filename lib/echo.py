@@ -1,5 +1,6 @@
 import click
 import os
+import sys
 from globalvar import *
 
 def clog(message: str):
