@@ -3,3 +3,4 @@ config.yml
 workplace/
 cache
 __pycache__/
+site/
