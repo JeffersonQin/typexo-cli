@@ -237,7 +237,7 @@ def push():
 @cli.command()
 def discard_change():
 	'''
-	Discard change on current branch: `git reset --hard HEAD`
+	✅ Discard change on current branch: git reset --hard HEAD
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
