@@ -111,8 +111,8 @@ def rm():
 	clog('triggered to delete')
 	click.echo('IMPORTANT: this command will delete everything in the workplace folder. Are you sure to continue? [y/n] ', nl=False)
 	user_in = input()
-	if (user_in != 'y' and user_in != 'Y'): return
-	
+	if (user_in != 'y' and user_in != 'Y'):
+		cexit('REJECTED')
 	try:
 		shutil.rmtree(wp_dir)
 		csuccess('delete success.')
@@ -235,6 +235,16 @@ def push():
 
 
 @cli.command()
+def discard_change():
+	'''
+	Discard change on current branch: `git reset --hard HEAD`
+	'''
+	set_global('cmd_name', sys._getframe().f_code.co_name)
+	
+	clog('start discarding changes...')
+	git_safe_discard_change()
+
+@cli.command()
 def prod_test():
 	'''
 	✅ Test connectvity of production environment
@@ -270,7 +280,8 @@ def fix_git_utf8():
 	click.echo('IMPORTANT: this command will configure the git on your system. Continue? [y/n] ', nl=False)
 	user_in = input()
 
-	if (user_in != 'y' and user_in != 'Y'): return
+	if (user_in != 'y' and user_in != 'Y'): 
+		cexit('REJECTED')
 	git_fix_utf8()
 
 # -------------- TESTING -------------- #

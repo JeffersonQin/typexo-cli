@@ -104,6 +104,10 @@ def git_create_branch_subprocess(branch: str):
 def git_delete_branch_subprocess(branch: str):
 	subprocess.call(['git', '-C', get_global('wp_dir'), 'branch', '-d', branch])
 
+
+def git_reset_head_hard_subprocess():
+	subprocess.call(['git', '-C', get_global('wp_dir'), 'reset', '--hard', 'HEAD'])
+
 # warp
 
 def is_working_tree_clean():
@@ -119,7 +123,8 @@ def git_safe_switch(branch: str):
 		git_status_subprocess()
 		if not is_working_tree_clean():
 			cerr('working tree not clean, make sure that all the changes are staged and committed.')
-			clog('you can either stage and commit manually, or just try `clean-tree` command')
+			clog('To add to index and commit: you can either stage and commit manually, or just try `clean-tree` command.')
+			clog('To discard changes: you can either discard manually, or just try `discard-change` command.')
 			raise Exception('working tree not clean')
 		# PREREQUISITE: make sure that branch exists
 		# get initial branches
@@ -177,3 +182,27 @@ def git_safe_merge_to_master(branch: str):
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit(f'SAFE MERGE TO MASTER FROM {branch} FAILED')
+
+
+def git_safe_discard_change():
+	set_global('cmd_name', sys._getframe().f_code.co_name)
+	
+	try:
+		clog('status: ')
+		git_status_subprocess()
+		clog('branch: ')
+		git_branch_subprocess()
+		branches = git_branch_native()
+		b = 'master'
+		for branch in branches.split('\n'):
+			if branch.startswith('* '):
+				b = branch[2:]
+		click.echo(f'IMPORTANT: THIS COMMAND WILL DISCARD ALL THE UNSTAGED CHANGE ON BRANCH {b}, continue? [y/n] ', nl=False)
+		user_in = input()
+		if (user_in != 'y' and user_in != 'Y'):
+			cexit('REJECTED')
+		git_reset_head_hard_subprocess()
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		cexit(f'DISCARDING FAILED')
