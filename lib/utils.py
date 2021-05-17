@@ -4,6 +4,7 @@ import unicodedata
 import re
 import click
 import os
+import traceback
 from globalvar import *
 from echo import *
 
@@ -32,6 +33,7 @@ def download_file(url, dir):
 	except Exception as err:
 		cerr(f'error: {repr(err)}')
 		traceback.print_exc()
+		cexit('DOWNLOAD FAILED')
 
 
 def size_description(size):
