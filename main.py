@@ -122,7 +122,8 @@ def rm():
 
 
 @cli.command()
-def clone():
+@click.argument('repo')
+def clone(repo: str):
 	'''
 	❌ Clone the workplace from remote repo
 	'''
@@ -163,6 +164,10 @@ def pull(source: str):
 		# content
 		content_data = fetch_database(source, 'contents')
 		res = dump_contents(content_data, meta_data=meta_data, pair_data=pair_data)
+		# fields
+		field_data = fetch_database(source, 'fields')
+		clog(field_data)
+		input()
 		# ---------------------------- #
 		clog('git status')
 		git_status_subprocess()
