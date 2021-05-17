@@ -71,7 +71,7 @@ def cli():
 @cli.command()
 def init():
 	'''
-	✅ Initialize a git version control workplace from nothing
+	🚧 Initialize a git version control workplace from nothing
 	'''
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 

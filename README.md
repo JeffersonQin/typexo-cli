@@ -4,7 +4,7 @@
 - [原理以及流程](#原理以及流程)
 - [关于本地测试服务器](#关于本地测试服务器)
 - [命令说明](#命令说明)
-	- [✅ `init`](#-init)
+	- [🚧 `init`](#-init)
 	- [✅ `rm`](#-rm)
 	- [✅ `clean-tree`](#-clean-tree)
 	- [✅ `discard-change`](#-discard-change)
@@ -74,7 +74,7 @@
 
 注：✅代表已完成，❌代表未完成，🚧代表正在编写。
 
-## ✅ `init`
+## 🚧 `init`
 
 初始化`workplace`。会在当前目录新建一个`workplace`文件夹，然后在其内部初始化`git`。
 
