@@ -22,7 +22,6 @@ def check_dirs():
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit('INVALID FILE STRUCTURE')
-		
 
 
 def fetch_database(source: str, database: str):
@@ -72,13 +71,13 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 			if content.startswith('<!--markdown-->'):
 				content = content[15:]
 			# obtain essential meta data
-			type = f"{item['type']}s"
+			ctype = f"{item['type']}s"
 			create_local_time = time.localtime(item['created'])
 			create_year = str(create_local_time.tm_year)
 			create_month = str(create_local_time.tm_mon)
 			file_name = slugify(item['title'])
 			# dealing with directories
-			base_dir = os.path.join(get_global('wp_dir'), type)
+			base_dir = os.path.join(get_global('wp_dir'), ctype)
 			year_dir = os.path.join(base_dir, create_year)
 			mon_dir = os.path.join(year_dir, create_month)
 			# create if not exist
@@ -112,7 +111,7 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 			if str(cid) not in pair_data.keys():
 				pair_data[str(cid)] = {'mids': []}
 			# match cid with path
-			dir_cid_pair[f'/{type}/{create_year}/{create_month}/{file_name}.md'] = cid
+			dir_cid_pair[f'/{ctype}/{create_year}/{create_month}/{file_name}.md'] = cid
 			# get tags & categories
 			tags = []
 			categories = []
@@ -135,7 +134,7 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 				f.write(meta)
 				f.write('---\n')
 				f.write(content)
-			csuccess(f'success: /{type}/{create_year}/{create_month}/{file_name}.md')
+			csuccess(f'success: /{ctype}/{create_year}/{create_month}/{file_name}.md')
 		clog('start dumping cids...')
 		json.dump(dir_cid_pair, open(os.path.join(get_global('wp_dir'), 'cids-generated.json'), 'w+', encoding='utf8'),
 								sort_keys=True,
@@ -145,7 +144,7 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 		csuccess(f'success: dumping finished.')
 		csuccess(f'success: pulling finished.')
 	except Exception as e:
-		cerr(f'error: /{type}/{create_year}/{create_month}/{file_name}.md')
+		cerr(f'error: /{ctype}/{create_year}/{create_month}/{file_name}.md')
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit('CONTENT DUMPING FAILED')
@@ -219,6 +218,7 @@ def format_relationships(pair_data: list):
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit('RELATIONSHIP FORMATTING FAILED')
+
 
 def format_fields(field_data: list):
 	set_global('cmd_name', sys._getframe().f_code.co_name)
