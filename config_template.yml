@@ -4,3 +4,11 @@ remote:
 test:
   token: your-token
   url: your-url-not-ending-with-dash
+defaultFields:
+  customField1: value1
+  customField2: 1
+  customField3: 2.3
+fields:
+  customField1: str
+  customField2: int
+  customField3: float
