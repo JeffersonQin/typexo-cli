@@ -7,6 +7,7 @@ import time
 from globalvar import *
 from echo import *
 from utils import *
+from converter import *
 
 
 def check_dirs():
@@ -56,6 +57,7 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 	
 	clog('dumping contents...')
 	
+	ctype = None
 	create_year = None
 	create_month = None
 	file_name = None
@@ -65,16 +67,16 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 	try:
 		for item in content_data:
 			cid = item['cid']
-			# obtain content			
+			
+			item = typecho2md(item)
+			# obtain content	
 			content = str(item['text'])
-			# format content
-			if content.startswith('<!--markdown-->'):
-				content = content[15:]
-			# obtain essential meta data
+			# format the metas for yml
+			item = typecho2md(item)
 			ctype = f"{item['type']}s"
-			create_local_time = time.localtime(item['created'])
-			create_year = str(create_local_time.tm_year)
-			create_month = str(create_local_time.tm_mon)
+			# obtain essential meta data
+			create_year = str(item['year'])
+			create_month = str(item['mon'])
 			file_name = slugify(item['title'])
 			# dealing with directories
 			base_dir = os.path.join(get_global('wp_dir'), ctype)
@@ -87,26 +89,6 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 			for exclude in get_global('content_meta_exclude'):
 				if exclude in item.keys():
 					item.pop(exclude)
-			# format the metas for yml
-			# format time
-			item['created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(item['created']))
-			item['modified'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(item['modified']))
-			# format booleans
-			if 'allowComment' in item.keys():
-				if item['allowComment'] == '1':
-					item['allowComment'] = True
-				else: item['allowComment'] = False
-			if 'allowPing' in item.keys():
-				if item['allowPing'] == '1':
-					item['allowPing'] = True
-				else: item['allowPing'] = False
-			if 'allowFeed' in item.keys():
-				if item['allowFeed'] == '1':
-					item['allowFeed'] = True
-				else: item['allowFeed'] = False
-			# format nulls
-			for key in item.keys():
-				if item[key] == None: item[key] = ''
 			# create key if not exist
 			if str(cid) not in pair_data.keys():
 				pair_data[str(cid)] = {'mids': []}

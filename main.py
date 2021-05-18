@@ -26,6 +26,7 @@ from utils import *
 from globalvar import *
 from pull import *
 from warp_git import *
+from read import *
 
 # initialize global var
 global_init()
@@ -41,7 +42,7 @@ wp_essential_structure = {
 }
 
 # configure items exclude in metadata
-content_meta_exclude = ['cid', 'order', 'commentsNum', 'text', 'views']
+content_meta_exclude = ['cid', 'order', 'commentsNum', 'text', 'views', 'year', 'mon']
 meta_meta_exclude = ['count', 'order']
 
 # globalize other variable
@@ -292,7 +293,8 @@ def fix_git_utf8():
 
 @cli.command()
 def test():
-	git_add_all_subprocess()
+	print(filter_markdown())
+	read_markdown_file(filter_markdown()[0])
 	pass
 
 #### Command Line Interface (CLI) End ####
