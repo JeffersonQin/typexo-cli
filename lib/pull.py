@@ -52,7 +52,7 @@ def fetch_database(source: str, database: str):
 		cexit(f'{source}/{database} FETCHING FAILED')
 
 
-def dump_contents(content_data: list, meta_data: list, pair_data: dict):
+def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_data: dict):
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
 	clog('dumping contents...')
@@ -124,6 +124,9 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict):
 			categories.sort()
 			item['tags'] = tags
 			item['categories'] = categories
+			# dump fields
+			if str(cid) in field_data.keys():
+				item['fields'] = field_data[str(cid)]
 			
 			meta = yaml.dump(item, allow_unicode=True)
 			# start dumping
@@ -216,4 +219,20 @@ def format_relationships(pair_data: list):
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit('RELATIONSHIP FORMATTING FAILED')
+
+def format_fields(field_data: list):
+	set_global('cmd_name', sys._getframe().f_code.co_name)
+	
+	try:
+		res = {}
+		for field in field_data:
+			cid = field['cid']
+			if str(cid) not in res.keys():
+				res[str(cid)] = {}
+			res[str(cid)][field['name']] = field[f'{field["type"]}_value']
+		return res
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		cexit('FIELD FORMATTING FAILED')
 

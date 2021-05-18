@@ -161,13 +161,12 @@ def pull(source: str):
 		# relationship
 		pair_data = fetch_database(source, 'relationships')
 		pair_data = format_relationships(pair_data)
-		# content
-		content_data = fetch_database(source, 'contents')
-		res = dump_contents(content_data, meta_data=meta_data, pair_data=pair_data)
 		# fields
 		field_data = fetch_database(source, 'fields')
-		clog(field_data)
-		input()
+		field_data = format_fields(field_data)
+		# content
+		content_data = fetch_database(source, 'contents')
+		res = dump_contents(content_data, meta_data=meta_data, pair_data=pair_data, field_data=field_data)
 		# ---------------------------- #
 		clog('git status')
 		git_status_subprocess()
