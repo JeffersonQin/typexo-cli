@@ -116,6 +116,7 @@ def is_working_tree_clean():
 
 
 def git_safe_switch(branch: str):
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	try:
@@ -155,9 +156,12 @@ def git_safe_switch(branch: str):
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit(f'SAFE SWITCHING to {branch} FAILED')
+	finally:
+		pop_new_name()
 
 
 def git_safe_merge_to_master(branch: str):
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	try:
@@ -182,9 +186,12 @@ def git_safe_merge_to_master(branch: str):
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit(f'SAFE MERGE TO MASTER FROM {branch} FAILED')
+	finally:
+		pop_new_name()
 
 
 def git_safe_discard_change():
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
 	try:
@@ -206,3 +213,5 @@ def git_safe_discard_change():
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit(f'DISCARDING FAILED')
+	finally:
+		pop_new_name()

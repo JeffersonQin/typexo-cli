@@ -11,6 +11,7 @@ from converter import *
 
 
 def read_markdown_file(dir: str):
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog(f'reading: {dir}')
@@ -34,9 +35,12 @@ def read_markdown_file(dir: str):
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit(f'MARKDOWN READING FAILED')
+	finally:
+		pop_new_name()
 
 
 def filter_markdown():
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('filtering markdown files...')
@@ -54,9 +58,12 @@ def filter_markdown():
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit(f'MAKRDOWN FILTERING FAILED')
+	finally:
+		pop_new_name()
 
 
 def read_local_contents():
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('reading local files...')
@@ -70,3 +77,5 @@ def read_local_contents():
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit(f'LOCAL FILES READING FAILED')
+	finally:
+		pop_new_name()

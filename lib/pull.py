@@ -11,6 +11,7 @@ from converter import *
 
 
 def check_dirs():
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('checking essential structure...')
@@ -23,9 +24,12 @@ def check_dirs():
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit('INVALID FILE STRUCTURE')
+	finally:
+		pop_new_name()
 
 
 def fetch_database(source: str, database: str):
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog(f'fetching {database}')
@@ -50,9 +54,12 @@ def fetch_database(source: str, database: str):
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit(f'{source}/{database} FETCHING FAILED')
+	finally:
+		pop_new_name()
 
 
 def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_data: dict):
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
 	clog('dumping contents...')
@@ -72,7 +79,6 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 			# obtain content	
 			content = str(item['text'])
 			# format the metas for yml
-			item = typecho2md(item)
 			ctype = f"{item['type']}s"
 			# obtain essential meta data
 			create_year = str(item['year'])
@@ -130,9 +136,12 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit('CONTENT DUMPING FAILED')
+	finally:
+		pop_new_name()
 
 
 def format_metas(meta_data: list):
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
 	clog('formating metadata...')
@@ -155,9 +164,12 @@ def format_metas(meta_data: list):
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit('META FORMATTING FAILED')
+	finally:
+		pop_new_name()
 
 
 def dump_metas(meta_data: list):
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
 	clog('dumping metadata...')
@@ -183,9 +195,12 @@ def dump_metas(meta_data: list):
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit('META DUMPING FAILED')
+	finally:
+		pop_new_name()
 		
 
 def format_relationships(pair_data: list):
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
 	try:
@@ -200,9 +215,12 @@ def format_relationships(pair_data: list):
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit('RELATIONSHIP FORMATTING FAILED')
+	finally:
+		pop_new_name()
 
 
 def format_fields(field_data: list):
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
 	try:
@@ -217,4 +235,6 @@ def format_fields(field_data: list):
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit('FIELD FORMATTING FAILED')
+	finally:
+		pop_new_name()
 

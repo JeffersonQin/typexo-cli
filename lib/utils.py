@@ -9,6 +9,7 @@ from globalvar import *
 from echo import *
 
 def download_file(url, dir):
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog(f'start downloading: {url} => {dir}')
@@ -34,6 +35,8 @@ def download_file(url, dir):
 		cerr(f'error: {repr(err)}')
 		traceback.print_exc()
 		cexit('DOWNLOAD FAILED')
+	finally:
+		pop_new_name()
 
 
 def size_description(size):

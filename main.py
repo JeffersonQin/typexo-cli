@@ -74,6 +74,7 @@ def init():
 	'''
 	🚧 Initialize a git version control workplace from nothing
 	'''
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('initializing workplace...')
@@ -96,6 +97,8 @@ def init():
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
+	finally:
+		pop_new_name()
 
 
 @cli.command()
@@ -103,6 +106,7 @@ def rm():
 	'''
 	✅ Delete the whole workplace
 	'''
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	if not os.path.exists(wp_dir):
@@ -120,6 +124,8 @@ def rm():
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
+	finally:
+		pop_new_name()
 
 
 @cli.command()
@@ -128,9 +134,12 @@ def clone(repo: str):
 	'''
 	❌ Clone the workplace from remote repo
 	'''
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('cloning from remote repo...')
+
+	pop_new_name()
 
 
 @cli.command()
@@ -139,6 +148,7 @@ def pull(source: str):
 	'''
 	🚧 Pull the workplace from prod / test environment
 	'''
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog(f'pulling from {source} environment...')
@@ -179,6 +189,8 @@ def pull(source: str):
 	except Exception as e:
 		cerr(f'pulling failed. error: {repr(e)}')
 		traceback.print_exc()
+	finally:
+		pop_new_name()
 
 
 @cli.command()
@@ -186,6 +198,7 @@ def status():
 	'''
 	✅ Check the current status of current branch of workplace
 	'''
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('checking status of workplace...')
@@ -194,6 +207,8 @@ def status():
 	except Exception as e:
 		cerr(f'status check failed. error: {repr(e)}')
 		traceback.print_exc()
+	finally:
+		pop_new_name()
 
 
 @cli.command()
@@ -201,6 +216,7 @@ def clean_tree():
 	'''
 	✅ Clean working tree: `git commit -am` for current branch
 	'''
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('cleaning working tree.')
@@ -215,6 +231,8 @@ def clean_tree():
 	except Exception as e:
 		cerr(f'working tree cleaning failed. error: {repr(e)}')
 		traceback.print_exc()
+	finally:
+		pop_new_name()
 
 
 @cli.command()
@@ -223,10 +241,13 @@ def merge(branch: str):
 	'''
 	✅ Merge the branch with local repo
 	'''
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog(f'merging {branch} environment with local repo...')
 	git_safe_merge_to_master(branch)
+
+	pop_new_name()
 
 
 @cli.command()
@@ -234,9 +255,12 @@ def push():
 	'''
 	❌ Update remote refs along with associated objects
 	'''
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('pushing to remote')
+
+	pop_new_name()
 
 
 @cli.command()
@@ -244,16 +268,21 @@ def discard_change():
 	'''
 	✅ Discard change on current branch: git reset --hard HEAD
 	'''
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 	
 	clog('start discarding changes...')
 	git_safe_discard_change()
+
+	pop_new_name()
+
 
 @cli.command()
 def prod_test():
 	'''
 	✅ Test connectvity of production environment
 	'''
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('testing connectivity...')
@@ -272,6 +301,8 @@ def prod_test():
 		clog(f'RESPONSE: {res}')
 		if res['code'] == 1: clog('test', 'connectivity test passed')
 		else: cerr(f'Connectivity test failed, Message: {res["message"]}')
+	finally:
+		pop_new_name()
 
 
 @cli.command()
@@ -279,22 +310,28 @@ def fix_git_utf8():
 	'''
 	✅ Fix utf-8 encoding error of git
 	'''
+	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
 	clog('WARNING:')
 	click.echo('IMPORTANT: this command will configure the git on your system. Continue? [y/n] ', nl=False)
 	user_in = input()
 
-	if (user_in != 'y' and user_in != 'Y'): 
-		cexit('REJECTED')
-	git_fix_utf8()
+	try:
+		if (user_in != 'y' and user_in != 'Y'): 
+			cexit('REJECTED')
+		git_fix_utf8()
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+	finally:
+		pop_new_name()
 
 # -------------- TESTING -------------- #
 
 @cli.command()
 def test():
-	print(filter_markdown())
-	read_markdown_file(filter_markdown()[0])
+	print(read_local_contents())
 	pass
 
 #### Command Line Interface (CLI) End ####

@@ -10,10 +10,13 @@ from utils import *
 
 
 def typecho2md(data: dict):	
+	push_old_name()
+	set_global('cmd_name', sys._getframe().f_code.co_name)
+	
 	try:
 		# format time
-		data['year'] = time.localtime(data['created']).tm_year
-		data['mon'] = time.localtime(data['created']).tm_mon
+		data['year'] = time.localtime(int(data['created'])).tm_year
+		data['mon'] = time.localtime(int(data['created'])).tm_mon
 		data['created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data['created']))
 		data['modified'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data['modified']))
 		# format booleans
@@ -37,13 +40,17 @@ def typecho2md(data: dict):
 			data['text'] = data['text'][15:]
 		return data
 	except Exception as e:
-		set_global('cmd_name', sys._getframe().f_code.co_name)
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit(f'TYPECHO DATA CONVERTING FAILED')
+	finally:
+		pop_new_name()
 
 
 def md2typecho(data: dict):
+	push_old_name()
+	set_global('cmd_name', sys._getframe().f_code.co_name)
+	
 	try:
 		# convert to timestamp
 		data['created'] = int(time.mktime(time.strptime(data['created'], '%Y-%m-%d %H:%M:%S')))
@@ -68,7 +75,8 @@ def md2typecho(data: dict):
 			data['text'] = f"<!--markdown-->{data['text']}"
 		return data
 	except Exception as e:
-		set_global('cmd_name', sys._getframe().f_code.co_name)
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		cexit(f'MARKDOWN DATA CONVERTING FAILED')
+	finally:
+		pop_new_name()
