@@ -33,8 +33,8 @@ def typecho2md(data: dict):
 		for key in data.keys():
 			if data[key] == None: data[key] = ''
 		# format content
-		if item['text'].startswith('<!--markdown-->'):
-			item['text'] = item['text'][15:]
+		if data['text'].startswith('<!--markdown-->'):
+			data['text'] = data['text'][15:]
 		return data
 	except Exception as e:
 		set_global('cmd_name', sys._getframe().f_code.co_name)
@@ -64,8 +64,8 @@ def md2typecho(data: dict):
 		for key in data.keys():
 			if data[key] == '': data[key] = None
 		# format content
-		if not item['text'].startswith('<!--markdown-->'):
-			item['text'] = f"<!--markdown-->{item['text']}"
+		if not data['text'].startswith('<!--markdown-->'):
+			data['text'] = f"<!--markdown-->{data['text']}"
 		return data
 	except Exception as e:
 		set_global('cmd_name', sys._getframe().f_code.co_name)
