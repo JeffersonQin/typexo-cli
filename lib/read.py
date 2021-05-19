@@ -39,7 +39,7 @@ def read_markdown_file(dir: str):
 def filter_markdown():
 	set_global('cmd_name', sys._getframe().f_code.co_name)
 
-	clog('reading contents...')
+	clog('filtering markdown files...')
 	try:
 		res = []
 		for dir in get_global('wp_essential_structure')['folders']:
@@ -55,3 +55,18 @@ def filter_markdown():
 		traceback.print_exc()
 		cexit(f'MAKRDOWN FILTERING FAILED')
 
+
+def read_local_contents():
+	set_global('cmd_name', sys._getframe().f_code.co_name)
+
+	clog('reading local files...')
+	try:
+		res = []
+		files = filter_markdown()
+		for file in files:
+			res.append(read_markdown_file(file))
+		return res
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		cexit(f'LOCAL FILES READING FAILED')
