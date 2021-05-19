@@ -13,7 +13,7 @@
 	- [✅ `fix-git-utf8`](#-fix-git-utf8)
 	- [✅ `prod-test`](#-prod-test)
 	- [❌ `clone <repo>`](#-clone-repo)
-	- [🚧 `pull {prod|test}`](#-pull-prodtest)
+	- [✅ `pull {prod|test}`](#-pull-prodtest)
 - [配置文件](#配置文件)
 	- [`prod`字段](#prod字段)
 	- [`test`字段](#test字段)
@@ -119,7 +119,7 @@ Reference: http://howiefh.github.io/2014/10/11/git-encoding/
 
 从远程仓库拉取`workplace`
 
-## 🚧 `pull {prod|test}`
+## ✅ `pull {prod|test}`
 
 从 `prod` / `test` 环境导入到本地对应分支，并自动进行`merge`操作。
 

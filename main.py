@@ -146,7 +146,7 @@ def clone(repo: str):
 @click.argument('source', type=click.Choice(['prod', 'test']))
 def pull(source: str):
 	'''
-	🚧 Pull the workplace from prod / test environment
+	✅ Pull the workplace from prod / test environment
 	'''
 	push_old_name()
 	set_global('cmd_name', sys._getframe().f_code.co_name)
