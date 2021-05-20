@@ -28,6 +28,7 @@ from pull import *
 from warp_git import *
 from read import *
 from echo import *
+from deploy import *
 
 # initialize subroutine
 init_subroutine()
@@ -46,8 +47,11 @@ wp_essential_structure = {
 }
 
 # configure items exclude in metadata
-content_meta_exclude = ['cid', 'order', 'commentsNum', 'text', 'views', 'year', 'mon']
+content_meta_exclude = ['cid', 'order', 'commentsNum', 'text', 'views', 'year', 'mon', 'dir']
 meta_meta_exclude = ['count', 'order']
+content_check_essential = ['title', 'slug', 'created', 'modified', 'text', 'authorId', 'template', 'type', 'status', 'password', 'allowComment', 'allowPing', 'allowFeed']
+content_meta_string = ['title', 'slug', 'text', 'template', 'type', 'status', 'password', 'allowComment', 'allowPing', 'allowFeed']
+content_meta_int = ['created', 'modified', 'authorId']
 
 # globalize other variable
 set_global('conf', {})
@@ -59,6 +63,9 @@ set_global('config_dir', config_dir)
 set_global('wp_essential_structure', wp_essential_structure)
 set_global('content_meta_exclude', content_meta_exclude)
 set_global('meta_meta_exclude', meta_meta_exclude)
+set_global('content_check_essential', content_check_essential)
+set_global('content_meta_string', content_meta_string)
+set_global('content_meta_int', content_meta_int)
 
 def read_conf():
 	# Read configuration
@@ -100,6 +107,7 @@ def init():
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
+		cexit('INIT FAILED')
 	finally:
 		pop_subroutine()
 
@@ -126,6 +134,7 @@ def rm():
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
+		cexit('REMOVE WP FAILED')
 	finally:
 		pop_subroutine()
 
@@ -189,6 +198,48 @@ def pull(source: str):
 	except Exception as e:
 		cerr(f'pulling failed. error: {repr(e)}')
 		traceback.print_exc()
+		cexit(f'PULL FROM {source} FAILED')
+	finally:
+		pop_subroutine()
+
+
+@cli.command()
+@click.pass_context
+def deploy(ctx):
+	'''
+	🚧 Deploy the local workspace to PROD server
+	'''
+	push_subroutine(sys._getframe().f_code.co_name)
+
+	clog(f'deploying to server...')
+	try:
+		# safe checkout to master
+		git_safe_switch('master')
+		# pull from server (in which will safe checkout to prod)
+		ctx.invoke(pull, source='prod')
+		# content
+		remote_contents = fetch_database('prod', 'contents')
+		local_contents = read_local_contents()
+		new_contents, modified_contents, deleted_contents = diff_contents(local_contents, remote_contents)
+		print('new', new_contents)
+		print('modified', modified_contents)
+		print('deleted', deleted_contents)
+
+		url = f"{get_global('conf')['prod']['url']}/push_contents"
+		data = {
+			'token': get_global('conf')['prod']['token'],
+			'add': new_contents,
+			'update': modified_contents,
+			'delete': deleted_contents
+		}
+
+		res = requests.post(url=url, data=json.dumps(data))
+		print(res.text)
+
+	except Exception as e:
+		cerr(f'deploying failed. error: {repr(e)}')
+		traceback.print_exc()
+		cexit('DEPLOYING FAILED')
 	finally:
 		pop_subroutine()
 
@@ -206,6 +257,7 @@ def status():
 	except Exception as e:
 		cerr(f'status check failed. error: {repr(e)}')
 		traceback.print_exc()
+		cexit('STATUS CHECK FAILED')
 	finally:
 		pop_subroutine()
 
@@ -229,6 +281,7 @@ def clean_tree():
 	except Exception as e:
 		cerr(f'working tree cleaning failed. error: {repr(e)}')
 		traceback.print_exc()
+		cexit('WORKING TREE CLEANING FAILED')
 	finally:
 		pop_subroutine()
 
@@ -287,9 +340,11 @@ def prod_test():
 	except HTTPError as http_err:
 		cerr(f'HTTP error occurred: {repr(http_err)}')
 		traceback.print_exc()
+		cexit('PROD TEST FAILED')
 	except Exception as err:
 		cerr(f'other error occurred: {repr(err)}')
 		traceback.print_exc()
+		cexit('PROD TEST FAILED')
 	else:
 		res = response.json()
 		clog(f'RESPONSE: {res}')
@@ -317,6 +372,7 @@ def fix_git_utf8():
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
+		cexit('UTF8 FIX FAILED')
 	finally:
 		pop_subroutine()
 
