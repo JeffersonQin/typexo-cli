@@ -18,6 +18,8 @@ def typecho2md(data: dict):
 		data['mon'] = time.localtime(int(data['created'])).tm_mon
 		data['created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data['created']))
 		data['modified'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data['modified']))
+		# add dir
+		data['dir'] = f'/{data["type"]}s/{data["year"]}/{data["mon"]}/{slugify(data["title"])}.md'
 		# format booleans
 		if 'allowComment' in data.keys():
 			if data['allowComment'] == '1':
@@ -55,6 +57,8 @@ def md2typecho(data: dict):
 		data['modified'] = int(time.mktime(time.strptime(data['modified'], '%Y-%m-%d %H:%M:%S')))
 		data['year'] = time.localtime(data['created']).tm_year
 		data['mon'] = time.localtime(data['created']).tm_mon
+		# add dir
+		data['dir'] = f'/{data["type"]}s/{data["year"]}/{data["mon"]}/{slugify(data["title"])}.md'
 		# reformat boolean
 		if 'allowComment' in data.keys():
 			if data['allowComment']: data['allowComment'] = '1'
