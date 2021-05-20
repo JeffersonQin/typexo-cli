@@ -76,3 +76,20 @@ def read_local_contents():
 		cexit(f'LOCAL FILES READING FAILED')
 	finally:
 		pop_subroutine()
+
+
+def read_local_cids():
+	push_subroutine(sys._getframe().f_code.co_name)
+
+	clog('reading local cids-generated.json...')
+	try:
+		local_cids = {}
+		with open(os.path.join(get_global('wp_dir'), 'cids-generated.json'), 'r', encoding='utf-8') as f:
+			local_cids = json.load(f)
+		return local_cids
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		cexit(f'LOCAL FILES READING FAILED')
+	finally:
+		pop_subroutine()
