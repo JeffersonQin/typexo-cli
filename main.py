@@ -27,6 +27,10 @@ from globalvar import *
 from pull import *
 from warp_git import *
 from read import *
+from echo import *
+
+# initialize subroutine
+init_subroutine()
 
 # initialize global var
 global_init()
@@ -74,8 +78,7 @@ def init():
 	'''
 	🚧 Initialize a git version control workplace from nothing
 	'''
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 
 	clog('initializing workplace...')
 	if not os.path.exists(wp_dir): os.mkdir(wp_dir)
@@ -98,7 +101,7 @@ def init():
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 	finally:
-		pop_new_name()
+		pop_subroutine()
 
 
 @cli.command()
@@ -106,8 +109,7 @@ def rm():
 	'''
 	✅ Delete the whole workplace
 	'''
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 
 	if not os.path.exists(wp_dir):
 		cerr('workplace folder does not exist.')
@@ -125,7 +127,7 @@ def rm():
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 	finally:
-		pop_new_name()
+		pop_subroutine()
 
 
 @cli.command()
@@ -134,12 +136,11 @@ def clone(repo: str):
 	'''
 	❌ Clone the workplace from remote repo
 	'''
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 
 	clog('cloning from remote repo...')
 
-	pop_new_name()
+	pop_subroutine()
 
 
 @cli.command()
@@ -148,8 +149,7 @@ def pull(source: str):
 	'''
 	✅ Pull the workplace from prod / test environment
 	'''
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 
 	clog(f'pulling from {source} environment...')
 	try:
@@ -190,7 +190,7 @@ def pull(source: str):
 		cerr(f'pulling failed. error: {repr(e)}')
 		traceback.print_exc()
 	finally:
-		pop_new_name()
+		pop_subroutine()
 
 
 @cli.command()
@@ -198,8 +198,7 @@ def status():
 	'''
 	✅ Check the current status of current branch of workplace
 	'''
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 
 	clog('checking status of workplace...')
 	try:
@@ -208,7 +207,7 @@ def status():
 		cerr(f'status check failed. error: {repr(e)}')
 		traceback.print_exc()
 	finally:
-		pop_new_name()
+		pop_subroutine()
 
 
 @cli.command()
@@ -216,8 +215,7 @@ def clean_tree():
 	'''
 	✅ Clean working tree: `git commit -am` for current branch
 	'''
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 
 	clog('cleaning working tree.')
 	try:
@@ -232,7 +230,7 @@ def clean_tree():
 		cerr(f'working tree cleaning failed. error: {repr(e)}')
 		traceback.print_exc()
 	finally:
-		pop_new_name()
+		pop_subroutine()
 
 
 @cli.command()
@@ -241,13 +239,12 @@ def merge(branch: str):
 	'''
 	✅ Merge the branch with local repo
 	'''
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 
 	clog(f'merging {branch} environment with local repo...')
 	git_safe_merge_to_master(branch)
 
-	pop_new_name()
+	pop_subroutine()
 
 
 @cli.command()
@@ -255,12 +252,11 @@ def push():
 	'''
 	❌ Update remote refs along with associated objects
 	'''
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 
 	clog('pushing to remote')
 
-	pop_new_name()
+	pop_subroutine()
 
 
 @cli.command()
@@ -268,13 +264,12 @@ def discard_change():
 	'''
 	✅ Discard change on current branch: git reset --hard HEAD
 	'''
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 	
 	clog('start discarding changes...')
 	git_safe_discard_change()
 
-	pop_new_name()
+	pop_subroutine()
 
 
 @cli.command()
@@ -282,8 +277,7 @@ def prod_test():
 	'''
 	✅ Test connectvity of production environment
 	'''
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 
 	clog('testing connectivity...')
 	try:
@@ -302,7 +296,7 @@ def prod_test():
 		if res['code'] == 1: clog('test', 'connectivity test passed')
 		else: cerr(f'Connectivity test failed, Message: {res["message"]}')
 	finally:
-		pop_new_name()
+		pop_subroutine()
 
 
 @cli.command()
@@ -310,8 +304,7 @@ def fix_git_utf8():
 	'''
 	✅ Fix utf-8 encoding error of git
 	'''
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 
 	clog('WARNING:')
 	click.echo('IMPORTANT: this command will configure the git on your system. Continue? [y/n] ', nl=False)
@@ -325,7 +318,7 @@ def fix_git_utf8():
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 	finally:
-		pop_new_name()
+		pop_subroutine()
 
 # -------------- TESTING -------------- #
 

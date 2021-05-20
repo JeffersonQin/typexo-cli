@@ -10,8 +10,7 @@ from utils import *
 
 
 def typecho2md(data: dict):	
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 	
 	try:
 		# format time
@@ -44,12 +43,11 @@ def typecho2md(data: dict):
 		traceback.print_exc()
 		cexit(f'TYPECHO DATA CONVERTING FAILED')
 	finally:
-		pop_new_name()
+		pop_subroutine()
 
 
 def md2typecho(data: dict):
-	push_old_name()
-	set_global('cmd_name', sys._getframe().f_code.co_name)
+	push_subroutine(sys._getframe().f_code.co_name)
 	
 	try:
 		# convert to timestamp
@@ -79,4 +77,4 @@ def md2typecho(data: dict):
 		traceback.print_exc()
 		cexit(f'MARKDOWN DATA CONVERTING FAILED')
 	finally:
-		pop_new_name()
+		pop_subroutine()
