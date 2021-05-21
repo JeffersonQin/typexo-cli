@@ -14,7 +14,7 @@ from read import *
 def get_warped_content_value(element: str, content: str):
 	if content == None: return 'NULL'
 	if content == '': return 'NULL'
-	if element in get_global('content_meta_string'): return f"'{content}'"
+	if element in get_global('content_meta_string'): return f"{repr(content)}"
 	if element in get_global('content_meta_int'): return int(content)
 	return content
 
@@ -25,6 +25,34 @@ def get_content_essential(content: dict):
 		if element in content.keys():
 			res[element] = get_warped_content_value(element, content[element])
 	return res
+
+
+def post_data(item: str, target: str, add: list, update: list, delete: list):
+	push_subroutine(sys._getframe().f_code.co_name)
+
+	clog(f'posting data to {target} server...')
+	try:
+		url = f"{get_global('conf')[target]['url']}/push_{item}"
+		data = {
+			'token': get_global('conf')[target]['token'],
+			'add': add,
+			'update': update,
+			'delete': delete
+		}
+		res = requests.post(url=url, data=json.dumps(data)).json()
+		if res['code'] == -1:
+			cerr(f'POST ERROR: {res["message"]}')
+			raise Exception('POST REQUEST FAILED')
+		if res['code'] == 1:
+			csuccess(f'POST {item} TO {target} SUCCESS, message: {res["message"]}')
+			return res['add'], res['update'], res['delete']
+		raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		cexit('POSTING DATA FAILED')
+	finally:
+		pop_subroutine()
 
 
 def diff_contents(local: list, remote: list):
@@ -40,6 +68,8 @@ def diff_contents(local: list, remote: list):
 		modified_files = []
 		# post data: [cid]
 		deleted_files = []
+		# record titles of delete_files
+		deleted_titles = {}
 		# record cids
 		local_with_cids = {}
 		for l_content in local:
@@ -57,7 +87,8 @@ def diff_contents(local: list, remote: list):
 		for r_content in remote:
 			# check whether deleted
 			if str(r_content['cid']) not in local_with_cids.keys():
-				deleted_files.append(str(r_content['cid']))
+				deleted_files.append(int(r_content['cid']))
+				deleted_titles[str(r_content['cid'])] = r_content['title']
 				continue
 			# start comparing, check whether identical
 			l_content = local_with_cids[str(r_content['cid'])]
@@ -74,9 +105,22 @@ def diff_contents(local: list, remote: list):
 					identical = False
 					modify['data'][element] = get_warped_content_value(element, l_content[element])
 			if not identical:
+				# add attribute: modified date
 				if 'modified' not in modify['data'].keys():
 					modify['data']['modified'] = int(time.time())
 				modified_files.append(modify)
+		# logging
+		clog('---------- DIFF: CONTENT SECTION START ----------')
+		clog('NEW (Untracked): ')
+		for new_file in new_files:
+			csuccess(f'[U] hash: {new_file["hash"]}, dir: {new_file["dir"]}')
+		clog('MODIFIED (Unstaged): ')
+		for modified_file in modified_files:
+			csuccess(f'[M] cid: {modified_file["cid"]}, dir: {modified_file["dir"]}')
+		clog('DELETED: ')
+		for deleted_cid in deleted_files:
+			cerr(f'[D] cid: {deleted_cid}, title: {deleted_titles[str(deleted_cid)]}')
+		clog('---------- DIFF: CONTENT SECTION END ----------')
 		return new_files, modified_files, deleted_files
 	except Exception as e:
 		cerr(f'error: {repr(e)}')

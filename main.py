@@ -203,6 +203,11 @@ def pull(source: str):
 		pop_subroutine()
 
 
+# @cli.command()
+# @click.argument('source', type=click.Choice(['prod', 'test']))
+# def diff()
+
+
 @cli.command()
 @click.pass_context
 def deploy(ctx):
@@ -221,20 +226,12 @@ def deploy(ctx):
 		remote_contents = fetch_database('prod', 'contents')
 		local_contents = read_local_contents()
 		new_contents, modified_contents, deleted_contents = diff_contents(local_contents, remote_contents)
-		print('new', new_contents)
-		print('modified', modified_contents)
-		print('deleted', deleted_contents)
 
-		url = f"{get_global('conf')['prod']['url']}/push_contents"
-		data = {
-			'token': get_global('conf')['prod']['token'],
-			'add': new_contents,
-			'update': modified_contents,
-			'delete': deleted_contents
-		}
-
-		res = requests.post(url=url, data=json.dumps(data))
-		print(res.text)
+		res_add, res_update, res_delete = post_data('contents', 'prod', new_contents, modified_contents, deleted_contents)
+		
+		print(res_add)
+		print(res_update)
+		print(res_delete)
 
 	except Exception as e:
 		cerr(f'deploying failed. error: {repr(e)}')
