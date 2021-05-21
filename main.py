@@ -260,7 +260,7 @@ def status():
 
 
 @cli.command()
-def clean_tree():
+def commit():
 	'''
 	✅ Clean working tree: `git commit -am` for current branch
 	'''

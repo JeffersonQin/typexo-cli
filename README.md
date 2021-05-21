@@ -6,7 +6,7 @@
 - [命令说明](#命令说明)
 	- [🚧 `init`](#-init)
 	- [✅ `rm`](#-rm)
-	- [✅ `clean-tree`](#-clean-tree)
+	- [✅ `commit`](#-commit)
 	- [✅ `discard-change`](#-discard-change)
 	- [✅ `status`](#-status)
 	- [✅ `merge {prod|test}`](#-merge-prodtest)
@@ -82,7 +82,7 @@
 
 删除`workplace`。直接删除`workplace`文件夹，需要操作确认。
 
-## ✅ `clean-tree`
+## ✅ `commit`
 
 相当于对当前分支进行`git commit -am`，提交代码。
 
