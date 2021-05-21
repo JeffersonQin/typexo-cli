@@ -121,7 +121,7 @@ def diff_contents(local: list, remote: list):
 		for deleted_cid in deleted_files:
 			cerr(f'[D] cid: {deleted_cid}, title: {deleted_titles[str(deleted_cid)]}')
 		clog('---------- DIFF: CONTENT SECTION END ----------')
-		return new_files, modified_files, deleted_files
+		return new_files, modified_files, deleted_files, deleted_titles
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()

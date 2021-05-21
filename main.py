@@ -223,15 +223,42 @@ def deploy(ctx):
 		# pull from server (in which will safe checkout to prod)
 		ctx.invoke(pull, source='prod')
 		# content
+		# get remote contents
 		remote_contents = fetch_database('prod', 'contents')
+		# read local contents
 		local_contents = read_local_contents()
-		new_contents, modified_contents, deleted_contents = diff_contents(local_contents, remote_contents)
-
+		# diff contents between local and remote 
+		new_contents, modified_contents, deleted_contents, deleted_titles = diff_contents(local_contents, remote_contents)
+		# format the new & modified contents
+		new_contents_dict = { new_content['hash']: new_content for new_content in new_contents }
+		modified_contents_dict = { modified_content['cid']: modified_content for modified_content in modified_contents }
+		# post content to server
 		res_add, res_update, res_delete = post_data('contents', 'prod', new_contents, modified_contents, deleted_contents)
-		
-		print(res_add)
-		print(res_update)
-		print(res_delete)
+		# log post response
+		# log add content
+		for res in res_add:
+			if res['code'] == -1:
+				cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (ADD CONTENT) FAILED FOR hash: {res["hash"]}, dir: {new_contents_dict[res["hash"]]["dir"]}')
+			elif res['code'] == 1:
+				csuccess(f'POST SUCCESS: ADD CONTENT hash: {res["hash"]}, cid: {res["cid"]}, dir: {new_contents_dict[res["hash"]]["dir"]}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		# log update content
+		for res in res_update:
+			if res['code'] == -1:
+				cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (UPDATE CONTENT) FAILED FOR cid: {res["cid"]}, dir: {modified_contents_dict[res["cid"]]["dir"]}')
+			elif res['code'] == 1:
+				csuccess(f'POST SUCCESS: UPDATE CONTENT cid: {res["cid"]}, dir: {modified_contents_dict[res["cid"]]["dir"]}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		# log delete content
+		for res in res_delete:
+			if res['code'] == -1:
+				cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (DELETE CONTENT) FAILED FOR cid: {res["cid"]}, title: {deleted_titles[str(res["cid"])]}')
+			elif res['code'] == 1:
+				csuccess(f'POST SUCCESS: UPDATE CONTENT cid: {res["cid"]}, title: {deleted_titles[str(res["cid"])]}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 
 	except Exception as e:
 		cerr(f'deploying failed. error: {repr(e)}')
