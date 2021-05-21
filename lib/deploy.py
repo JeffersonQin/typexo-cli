@@ -111,13 +111,13 @@ def diff_contents(local: list, remote: list):
 				modified_files.append(modify)
 		# logging
 		clog('---------- DIFF: CONTENT SECTION START ----------')
-		clog('NEW (Untracked): ')
+		clog(f'NEW (Untracked): {len(new_files)} in total')
 		for new_file in new_files:
 			csuccess(f'[U] hash: {new_file["hash"]}, dir: {new_file["dir"]}')
-		clog('MODIFIED (Unstaged): ')
+		clog(f'MODIFIED (Unstaged): {len(modified_files)} in total')
 		for modified_file in modified_files:
 			csuccess(f'[M] cid: {modified_file["cid"]}, dir: {modified_file["dir"]}')
-		clog('DELETED: ')
+		clog(f'DELETED: {len(deleted_files)} in total')
 		for deleted_cid in deleted_files:
 			cerr(f'[D] cid: {deleted_cid}, title: {deleted_titles[str(deleted_cid)]}')
 		clog('---------- DIFF: CONTENT SECTION END ----------')

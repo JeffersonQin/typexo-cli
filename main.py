@@ -203,9 +203,31 @@ def pull(source: str):
 		pop_subroutine()
 
 
-# @cli.command()
-# @click.argument('source', type=click.Choice(['prod', 'test']))
-# def diff()
+@cli.command()
+@click.argument('source', type=click.Choice(['prod', 'test']))
+def diff(source: str):
+	'''
+	🚧 Show difference between local workplace and prod / test
+	'''
+	push_subroutine(sys._getframe().f_code.co_name)
+
+	clog(f'differing with {source}...')
+	try:
+		# safe checkout to master
+		git_safe_switch('master')
+		# content
+		# get remote contents
+		remote_contents = fetch_database(source, 'contents')
+		# read local contents
+		local_contents = read_local_contents()
+		# diff contents between local and remote 
+		diff_contents(local_contents, remote_contents)
+	except Exception as e:
+		cerr(f'deploying failed. error: {repr(e)}')
+		traceback.print_exc()
+		cexit('DEPLOYING FAILED')
+	finally:
+		pop_subroutine()
 
 
 @cli.command()
