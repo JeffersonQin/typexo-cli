@@ -3,15 +3,15 @@ import requests
 import unicodedata
 import re
 import click
-import os
 import traceback
-from globalvar import *
-from echo import *
+
+import echo
+
 
 def download_file(url, dir):
-	push_subroutine(sys._getframe().f_code.co_name)
+	echo.push_subroutine(sys._getframe().f_code.co_name)
 
-	clog(f'start downloading: {url} => {dir}')
+	echo.clog(f'start downloading: {url} => {dir}')
 	try:
 		# define request headers
 		headers = {'Proxy-Connection':'keep-alive'}
@@ -19,7 +19,7 @@ def download_file(url, dir):
 		r = requests.get(url, stream=True, headers=headers)
 		# obtain content length
 		length = int(r.headers['content-length'])
-		clog(f'file size: {size_description(length)}')
+		echo.clog(f'file size: {size_description(length)}')
 		# start writing
 		f = open(dir, 'wb+')
 		# show in progressbar
@@ -28,14 +28,14 @@ def download_file(url, dir):
 				if chunk:
 					f.write(chunk)
 					bar.update(len(chunk))
-		csuccess('Download Complete.')
+		echo.csuccess('Download Complete.')
 		f.close()
 	except Exception as err:
-		cerr(f'error: {repr(err)}')
+		echo.cerr(f'error: {repr(err)}')
 		traceback.print_exc()
-		cexit('DOWNLOAD FAILED')
+		echo.cexit('DOWNLOAD FAILED')
 	finally:
-		pop_subroutine()
+		echo.pop_subroutine()
 
 
 def size_description(size):
