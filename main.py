@@ -26,6 +26,7 @@ import globalvar
 import messenger
 import read
 import structure
+import tdump
 import tformatter
 import utils
 from warp_git import *
@@ -223,9 +224,9 @@ def diff(source: str):
 		# diff contents between local and remote 
 		tdiff.diff_contents(local_contents, remote_contents)
 	except Exception as e:
-		echo.cerr(f'deploying failed. error: {repr(e)}')
+		echo.cerr(f'differing with {source} failed. error: {repr(e)}')
 		traceback.print_exc()
-		echo.cexit('DEPLOYING FAILED')
+		echo.cexit(f'DIFFERING WITH {source} FAILED')
 	finally:
 		echo.pop_subroutine()
 
