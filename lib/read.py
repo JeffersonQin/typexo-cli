@@ -78,6 +78,45 @@ def read_local_contents():
 		pop_subroutine()
 
 
+def read_metas_in_posts():
+	push_subroutine(sys._getframe().f_code.co_name)
+
+	clog('reading metas in posts...')
+	try:
+		res = {'tag': [], 'category': []}
+		files = filter_markdown()
+		for file in files:
+			md_file = read_markdown_file(file)
+			if 'tags' in md_file.keys():
+				res['tag'] = list(set(res['tag'] + md_file['tags']))
+			if 'categories' in md_file.keys():
+				res['category'] = list(set(res['category'] + md_file['categories']))
+		return res
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		cexit(f'METAS IN POSTS READING FAILED')
+	finally:
+		pop_subroutine()
+
+
+def read_local_metas():
+	push_subroutine(sys._getframe().f_code.co_name)
+
+	clog('reading local metas...')
+	try:
+		local_metas = {}
+		with open(os.path.join(get_global('wp_dir'), 'metas.json'), 'r', encoding='utf-8') as f:
+			local_metas = json.load(f)
+		return local_metas
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		cexit(f'LOCAL METAS READING FAILED')
+	finally:
+		pop_subroutine()
+
+
 def read_local_cids():
 	push_subroutine(sys._getframe().f_code.co_name)
 
@@ -90,6 +129,6 @@ def read_local_cids():
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
-		cexit(f'LOCAL FILES READING FAILED')
+		cexit(f'LOCAL CIDS READING FAILED')
 	finally:
 		pop_subroutine()

@@ -176,8 +176,8 @@ def pull(source: str):
 		res = check_dirs()
 		# meta
 		meta_data = fetch_database(source, 'metas')
-		dump_metas(copy.deepcopy(meta_data))
-		meta_data = format_metas(meta_data)
+		dump_metas(format_metas(copy.deepcopy(meta_data)))
+		meta_data = format_metas_for_contents(meta_data)
 		# relationship
 		pair_data = fetch_database(source, 'relationships')
 		pair_data = format_relationships(pair_data)
@@ -426,7 +426,8 @@ def fix_git_utf8():
 
 @cli.command()
 def test():
-	print(read_local_contents())
+	print(read_local_metas())
+	print(read_metas_in_posts())
 	pass
 
 #### Command Line Interface (CLI) End ####

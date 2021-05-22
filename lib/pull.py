@@ -137,10 +137,10 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 		pop_subroutine()
 
 
-def format_metas(meta_data: list):
+def format_metas_for_contents(meta_data: list):
 	push_subroutine(sys._getframe().f_code.co_name)
 	
-	clog('formating metadata...')
+	clog('formatting metadata for contents...')
 	res = {}
 	try:
 		for meta in meta_data:
@@ -154,20 +154,20 @@ def format_metas(meta_data: list):
 			# reorganize data structure
 			res[str(mid)] = meta
 			csuccess(f'read {meta["type"]}: {meta["name"]}')
-		csuccess('success: metadata formatted.')
+		csuccess('success: metadata formatted for CONTENTS.')
 		return res
 	except Exception as e:
 		cerr(f'error: {repr(e)}')
 		traceback.print_exc()
-		cexit('META FORMATTING FAILED')
+		cexit('META FORMATTING FOR CONTENTS FAILED')
 	finally:
 		pop_subroutine()
 
 
-def dump_metas(meta_data: list):
+def format_metas(meta_data: list):
 	push_subroutine(sys._getframe().f_code.co_name)
 	
-	clog('dumping metadata...')
+	clog('formatting metadata...')
 	res = {'tag': {}, 'category': {}}
 	try:
 		for meta in meta_data:
@@ -178,8 +178,23 @@ def dump_metas(meta_data: list):
 				if exclude in meta.keys():
 					meta.pop(exclude)
 			res[meta_type][name] = meta
+		csuccess('success: metadata formatted.')
+		return res
+	except Exception as e:
+		cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		cexit('META FORMATTING FAILED')
+	finally:
+		pop_subroutine()
+
+
+def dump_metas(meta_data: dict):
+	push_subroutine(sys._getframe().f_code.co_name)
+	
+	clog('dumping metadata...')
+	try:
 		# dump metadata to file
-		json.dump(res, open(os.path.join(get_global('wp_dir'), 'metas.json'), 'w+', 
+		json.dump(meta_data, open(os.path.join(get_global('wp_dir'), 'metas.json'), 'w+', 
 						encoding='utf8'),
 						sort_keys=True,
 						indent='\t',
