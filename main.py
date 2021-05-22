@@ -50,9 +50,12 @@ wp_essential_structure = {
 # configure items exclude in metadata
 content_meta_exclude = ['cid', 'order', 'commentsNum', 'text', 'views', 'year', 'mon', 'dir']
 meta_meta_exclude = ['count', 'order']
+
 content_check_essential = ['title', 'slug', 'created', 'modified', 'text', 'authorId', 'template', 'type', 'status', 'password', 'allowComment', 'allowPing', 'allowFeed']
-content_meta_string = ['title', 'slug', 'text', 'template', 'type', 'status', 'password', 'allowComment', 'allowPing', 'allowFeed']
-content_meta_int = ['created', 'modified', 'authorId']
+meta_check_essential = ['name', 'slug', 'type', 'description', 'parent']
+
+typecho_type_string = ['title', 'slug', 'text', 'template', 'type', 'status', 'password', 'allowComment', 'allowPing', 'allowFeed', 'description', 'mid', 'cid']
+typecho_type_int = ['created', 'modified', 'authorId', 'parent']
 
 # globalize other variable
 globalvar.set_global('conf', {})
@@ -65,8 +68,9 @@ globalvar.set_global('wp_essential_structure', wp_essential_structure)
 globalvar.set_global('content_meta_exclude', content_meta_exclude)
 globalvar.set_global('meta_meta_exclude', meta_meta_exclude)
 globalvar.set_global('content_check_essential', content_check_essential)
-globalvar.set_global('content_meta_string', content_meta_string)
-globalvar.set_global('content_meta_int', content_meta_int)
+globalvar.set_global('meta_check_essential', meta_check_essential)
+globalvar.set_global('typecho_type_string', typecho_type_string)
+globalvar.set_global('typecho_type_int', typecho_type_int)
 
 def read_conf():
 	# Read configuration
@@ -177,7 +181,7 @@ def pull(source: str):
 		res = structure.check_dirs()
 		# meta
 		meta_data = messenger.fetch_database(source, 'metas')
-		tformatter.dump_metas(tformatter.format_metas(copy.deepcopy(meta_data)))
+		tdump.dump_metas(tformatter.format_metas(copy.deepcopy(meta_data)))
 		meta_data = tformatter.format_metas_for_contents(meta_data)
 		# relationship
 		pair_data = messenger.fetch_database(source, 'relationships')
@@ -187,7 +191,7 @@ def pull(source: str):
 		field_data = tformatter.format_fields(field_data)
 		# content
 		content_data = messenger.fetch_database(source, 'contents')
-		res = tformatter.dump_contents(content_data, meta_data=meta_data, pair_data=pair_data, field_data=field_data)
+		res = tdump.dump_contents(content_data, meta_data=meta_data, pair_data=pair_data, field_data=field_data)
 		# ---------------------------- #
 		echo.clog('git status')
 		git_status_subprocess()
@@ -221,8 +225,10 @@ def diff(source: str):
 		remote_contents = messenger.fetch_database(source, 'contents')
 		# read local contents
 		local_contents = read.read_local_contents()
+		# read local cids-generated.json
+		local_cids = read.read_local_cids()
 		# diff contents between local and remote 
-		tdiff.diff_contents(local_contents, remote_contents)
+		tdiff.diff_contents(local_contents, local_cids, remote_contents)
 	except Exception as e:
 		echo.cerr(f'differing with {source} failed. error: {repr(e)}')
 		traceback.print_exc()
@@ -250,8 +256,10 @@ def deploy(ctx):
 		remote_contents = messenger.fetch_database('prod', 'contents')
 		# read local contents
 		local_contents = read.read_local_contents()
+		# read local cids-generated.json
+		local_cids = read.read_local_cids()
 		# diff contents between local and remote 
-		new_contents, modified_contents, deleted_contents, deleted_titles = tdiff.diff_contents(local_contents, remote_contents)
+		new_contents, modified_contents, deleted_contents, deleted_titles = tdiff.diff_contents(local_contents, local_cids, remote_contents)
 		# format the new & modified contents
 		new_contents_dict = { new_content['hash']: new_content for new_content in new_contents }
 		modified_contents_dict = { modified_content['cid']: modified_content for modified_content in modified_contents }
@@ -282,6 +290,18 @@ def deploy(ctx):
 			elif res['code'] == 1:
 				echo.csuccess(f'POST SUCCESS: UPDATE CONTENT cid: {res["cid"]}, title: {deleted_titles[str(res["cid"])]}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		# meta
+		local_metas = read.read_local_metas()
+		post_metas = read.read_metas_in_posts()
+		remote_metas = tformatter.format_metas(messenger.fetch_database('prod', 'metas'))
+
+		new_metas, modified_metas, deleted_metas, deleted_names = tdiff.diff_metas(local_metas, post_metas, remote_metas)
+
+		print(new_metas)
+		print(modified_metas)
+		print(deleted_metas)
+		print(deleted_names)
+
 
 	except Exception as e:
 		echo.cerr(f'deploying failed. error: {repr(e)}')
@@ -427,8 +447,6 @@ def fix_git_utf8():
 
 @cli.command()
 def test():
-	print(read.read_local_metas())
-	print(read.read_metas_in_posts())
 	pass
 
 #### Command Line Interface (CLI) End ####

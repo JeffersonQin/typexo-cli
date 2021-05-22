@@ -7,15 +7,14 @@ import tformatter
 import globalvar
 import echo
 import read
+import utils
 
 
-def diff_contents(local: list, remote: list):
+def diff_contents(local: list, local_cids: dict, remote: list):
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
 	echo.clog(f'differing contents...')
 	try:
-		# cids-generated.json
-		local_cids = read.read_local_cids()
 		# post data: [{<dir>, <dir_hash>, <data>}]
 		new_files = []
 		# post data: [{<dir>, <cid>, <data>}]
@@ -57,7 +56,7 @@ def diff_contents(local: list, remote: list):
 				# convert line ending
 				if str(l_content[element]).replace('\r\n', '\n') != str(r_content[element]).replace('\r\n', '\n'):
 					identical = False
-					modify['data'][element] = tformatter.get_warped_content_value(element, l_content[element])
+					modify['data'][element] = tformatter.get_warped_mysql_value(element, l_content[element])
 			if not identical:
 				# add attribute: modified date
 				if 'modified' not in modify['data'].keys():
@@ -84,8 +83,88 @@ def diff_contents(local: list, remote: list):
 		echo.pop_subroutine()
 
 
-def diff_metas(local: list, remote: list):
-	return
+def diff_metas(local_metas: list, post_metas: list, remote_metas: list):
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	echo.clog('differing metas...')
+	try:
+		
+		def classify_diff_for_meta(metatype: str):
+			# post data: [{<type_name_hash>, <data>}]
+			new_metas = []
+			# post data: [{<mid>, <data>}]
+			modified_metas = []
+			# post data: [mid]
+			deleted_metas = []
+			# record names of deleted_metas: {'mid': <name>}
+			deleted_names = {}
+			# local data
+			local_meta_data = local_metas[metatype]
+			# all names of local
+			local_meta_names = set(post_metas[metatype] + list(local_meta_data.keys()))
+			# remote data
+			remote_meta_data = remote_metas[metatype]
+			remote_meta_names = remote_meta_data.keys()
+
+			local_meta_processed = set([])
+			for remote_meta_name in remote_meta_names:
+				if remote_meta_name not in local_meta_names:
+					# deleted metas
+					deleted_metas.append(int(remote_meta_data[remote_meta_name]['mid']))
+					deleted_names[str(remote_meta_data[remote_meta_name]['mid'])] = remote_meta_name
+				else:
+					if not remote_meta_data[remote_meta_name] == local_meta_data[remote_meta_name]:
+						# define modified data
+						modified_data = local_meta_data[remote_meta_name]
+						# define post data
+						modify = {
+							'mid': int(modified_data['mid']),
+							'data': {}
+						}
+						# configure modified data
+						modified_data['name'] = remote_meta_name
+						# configure post data
+						modify['data'] = tformatter.get_meta_essential(modified_data)
+						modified_metas.append(modify)
+					# pop from local
+					if remote_meta_name in local_meta_data.keys():
+						local_meta_data.pop(remote_meta_name)
+					local_meta_processed.add(remote_meta_name)
+			
+			for remain_local_meta_name in (local_meta_names - local_meta_processed):
+				new_ = {
+					'hash': hashlib.md5(f'{metatype}{remain_local_meta_name}'.encode()).hexdigest(), 
+					'data': {}
+				}
+				new_data = {'name': remain_local_meta_name}
+				# data specified
+				if remain_local_meta_name in local_meta_data.keys():
+					new_data = {**new_data, **local_meta_data[remain_local_meta_name]}
+				# if data specified in `metas.json`
+				else:
+					new_data['slug'] = utils.slugify(remain_local_meta_name)
+					new_data['type'] = metatype
+					new_data['description'] = None
+					new_data['parent'] = 0
+				# reformat the data
+				new_data = tformatter.get_meta_essential(new_data)
+				# add to post data
+				new_['data'] = new_data
+				new_metas.append(new_)
+
+			return new_metas, modified_metas, deleted_metas, deleted_names
+		
+		new_tags, modified_tags, deleted_tags, deleted_tags_name = classify_diff_for_meta('tag')
+		new_categories, modified_categories, deleted_categories, deleted_categories_name = classify_diff_for_meta('category')
+		# logging
+		
+		return (new_tags + new_categories), (modified_tags + modified_categories), (deleted_tags + deleted_categories), {**deleted_tags_name, **deleted_categories_name}
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit('DIFFERING METAS FAILED')
+	finally:
+		echo.pop_subroutine()
 
 
 def diff_relationships(local: list, remote: list):

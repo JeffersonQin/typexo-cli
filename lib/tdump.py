@@ -8,6 +8,7 @@ import yaml
 import globalvar
 import utils
 import echo
+import tformatter
 
 
 def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_data: dict):
@@ -26,7 +27,7 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 		for item in content_data:
 			cid = item['cid']
 			
-			item = typecho2md(item)
+			item = tformatter.typecho2md(item)
 			# obtain content	
 			content = str(item['text'])
 			# format the metas for yml

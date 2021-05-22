@@ -83,11 +83,11 @@ def md2typecho(data: dict):
 		echo.pop_subroutine()
 
 
-def get_warped_content_value(element: str, content: str):
+def get_warped_mysql_value(element: str, content: str):
 	if content == None: return 'NULL'
 	if content == '': return 'NULL'
-	if element in globalvar.get_global('content_meta_string'): return f"{repr(content)}"
-	if element in globalvar.get_global('content_meta_int'): return int(content)
+	if element in globalvar.get_global('typecho_type_string'): return f"{repr(content)}"
+	if element in globalvar.get_global('typecho_type_int'): return int(content)
 	return content
 
 
@@ -95,7 +95,15 @@ def get_content_essential(content: dict):
 	res = {}
 	for element in globalvar.get_global('content_check_essential'):
 		if element in content.keys():
-			res[element] = get_warped_content_value(element, content[element])
+			res[element] = get_warped_mysql_value(element, content[element])
+	return res
+
+
+def get_meta_essential(meta: dict):
+	res = {}
+	for element in globalvar.get_global('meta_check_essential'):
+		if element in meta.keys():
+			res[element] = get_warped_mysql_value(element, meta[element])
 	return res
 
 
