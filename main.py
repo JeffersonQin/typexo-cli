@@ -54,7 +54,7 @@ meta_meta_exclude = ['count', 'order']
 content_check_essential = ['title', 'slug', 'created', 'modified', 'text', 'authorId', 'template', 'type', 'status', 'password', 'allowComment', 'allowPing', 'allowFeed']
 meta_check_essential = ['name', 'slug', 'type', 'description', 'parent']
 
-typecho_type_string = ['title', 'slug', 'text', 'template', 'type', 'status', 'password', 'allowComment', 'allowPing', 'allowFeed', 'description', 'mid', 'cid']
+typecho_type_string = ['title', 'slug', 'text', 'template', 'type', 'status', 'password', 'allowComment', 'allowPing', 'allowFeed', 'description', 'mid', 'cid', 'name']
 typecho_type_int = ['created', 'modified', 'authorId', 'parent']
 
 # globalize other variable

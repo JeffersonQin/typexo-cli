@@ -9,10 +9,11 @@ import echo
 import tformatter
 
 
-def read_markdown_file(dir: str):
+def read_markdown_file(dir: str, silent=True):
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
-	echo.clog(f'reading: {dir}')
+	if not silent:
+		echo.clog(f'reading: {dir}')
 	try:
 		with open(dir, 'r') as f:
 			# front matter

@@ -111,7 +111,10 @@ def diff_metas(local_metas: list, post_metas: list, remote_metas: list):
 				if remote_meta_name not in local_meta_names:
 					# deleted metas
 					deleted_metas.append(int(remote_meta_data[remote_meta_name]['mid']))
-					deleted_names[str(remote_meta_data[remote_meta_name]['mid'])] = remote_meta_name
+					deleted_names[str(remote_meta_data[remote_meta_name]['mid'])] = {
+						'name': remote_meta_name, 
+						'type': remote_meta_data[remote_meta_name]['type']
+					}
 				else:
 					if not remote_meta_data[remote_meta_name] == local_meta_data[remote_meta_name]:
 						# define modified data
@@ -156,9 +159,23 @@ def diff_metas(local_metas: list, post_metas: list, remote_metas: list):
 		
 		new_tags, modified_tags, deleted_tags, deleted_tags_name = classify_diff_for_meta('tag')
 		new_categories, modified_categories, deleted_categories, deleted_categories_name = classify_diff_for_meta('category')
+		new_ret = new_tags + new_categories
+		modified_ret = modified_tags + modified_categories
+		deleted_ret = deleted_tags + deleted_categories
+		deleted_name_ret = {**deleted_tags_name, **deleted_categories_name}
 		# logging
-		
-		return (new_tags + new_categories), (modified_tags + modified_categories), (deleted_tags + deleted_categories), {**deleted_tags_name, **deleted_categories_name}
+		echo.clog('---------- DIFF: META SECTION START ----------')
+		echo.clog(f'NEW (Untracked): {len(new_ret)} in total')
+		for new_meta in new_ret:
+			echo.csuccess(f'[U] [{new_meta["data"]["type"]}] hash: {new_meta["hash"]}, name: {new_meta["data"]["name"]}')
+		echo.clog(f'MODIFIED (Unstaged): {len(modified_ret)} in total')
+		for modified_meta in modified_ret:
+			echo.csuccess(f'[M] [{modified_meta["data"]["type"]}] mid: {modified_meta["mid"]}, name: {modified_meta["data"]["name"]}')
+		echo.clog(f'DELETED: {len(deleted_ret)} in total')
+		for deleted_mid in deleted_ret:
+			echo.cerr(f'[D] [{deleted_name_ret[str(deleted_mid)]["type"]}] mid: {deleted_mid}, name: {deleted_name_ret[str(deleted_mid)]["name"]}')
+		echo.clog('---------- DIFF: META SECTION END ----------')
+		return new_ret, modified_ret, deleted_ret, deleted_name_ret
 	except Exception as e:
 		echo.cerr(f'error: {repr(e)}')
 		traceback.print_exc()
