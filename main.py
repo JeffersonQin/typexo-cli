@@ -297,11 +297,7 @@ def deploy(ctx):
 
 		new_metas, modified_metas, deleted_metas, deleted_names = tdiff.diff_metas(local_metas, post_metas, remote_metas)
 
-		print(new_metas)
-		print(modified_metas)
-		print(deleted_metas)
-		print(deleted_names)
-
+		res_add, res_update, res_delete = messenger.post_data('metas', 'prod', new_metas, modified_metas, deleted_metas)
 
 	except Exception as e:
 		echo.cerr(f'deploying failed. error: {repr(e)}')
