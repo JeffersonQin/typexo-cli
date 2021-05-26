@@ -14,6 +14,9 @@
 	- [✅ `prod-test`](#-prod-test)
 	- [❌ `clone <repo>`](#-clone-repo)
 	- [✅ `pull {prod|test}`](#-pull-prodtest)
+	- [🚧 `diff {prod|test}`](#-diff-prodtest)
+	- [🚧 `deploy`](#-deploy)
+	- [❌ `test`](#-test)
 - [配置文件](#配置文件)
 	- [`prod`字段](#prod字段)
 	- [`test`字段](#test字段)
@@ -122,6 +125,18 @@ Reference: http://howiefh.github.io/2014/10/11/git-encoding/
 ## ✅ `pull {prod|test}`
 
 从 `prod` / `test` 环境导入到本地对应分支，并自动进行`merge`操作。
+
+## 🚧 `diff {prod|test}`
+
+与远程`typexo-server`服务器传回的内容进行比对，列出更改 / 删除 / 增加过的项目。
+
+## 🚧 `deploy`
+
+部署到`prod`环境。
+
+## ❌ `test`
+
+本地搭建`test`环境，导入`sql`表，搭建`typecho`的`php-server`
 
 # 配置文件
 
