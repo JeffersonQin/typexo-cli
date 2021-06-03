@@ -67,7 +67,7 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 			if str(cid) in field_data.keys():
 				item['fields'] = field_data[str(cid)]
 			
-			meta = yaml.dump(item, allow_unicode=True)
+			meta = yaml.dump(item, allow_unicode=True, default_flow_style=None)
 			# start dumping
 			with open(os.path.join(mon_dir, f'{file_name}.md'), 'w+', encoding='utf8') as f:
 				f.write('---\n')
