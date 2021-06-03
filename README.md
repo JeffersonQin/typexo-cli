@@ -22,6 +22,7 @@
 	- [`test`字段](#test字段)
 	- [`fields`字段](#fields字段)
 	- [`defaultFields`字段](#defaultfields字段)
+- [使用注意事项](#使用注意事项)
 
 # 介绍
 
@@ -182,4 +183,8 @@ defaultFields:
 ```
 
 注意：对于`yes`, `no`, `true`, `false`等本身带有特殊含义可以被解析的值而言，请加上引号。
+
+# 使用注意事项
+
+* **请勿直接在`metas.json`内添加新的`meta`，如果需要添加并更改属性，请使用其他方式，如：直接在浏览器中进行此操作 / 将新`meta`添加到一篇文章中，在`deploy`后再在`metas.json`中进行进行编辑**
 
