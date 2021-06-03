@@ -10,6 +10,9 @@ import tformatter
 
 
 def read_markdown_file(dir: str, silent=True):
+	'''
+	read everything in markdown file, including dir
+	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
 	if not silent:
@@ -39,6 +42,9 @@ def read_markdown_file(dir: str, silent=True):
 
 
 def filter_markdown():
+	'''
+	filter out markdown files in the workspace
+	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
 	echo.clog('filtering markdown files...')
@@ -61,6 +67,9 @@ def filter_markdown():
 
 
 def read_local_contents():
+	'''
+	filter_markdown + read_markdown_file
+	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
 	echo.clog('reading local files...')
@@ -79,6 +88,9 @@ def read_local_contents():
 
 
 def read_metas_in_posts():
+	'''
+	read metas in posts, return {'tag': [<tag>], 'category': [<category>]}
+	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
 	echo.clog('reading metas in posts...')
@@ -101,6 +113,9 @@ def read_metas_in_posts():
 
 
 def read_local_metas():
+	'''
+	read metas in `metas.json`
+	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
 	echo.clog('reading local metas...')
@@ -118,6 +133,9 @@ def read_local_metas():
 
 
 def read_local_cids():
+	'''
+	read cids in `cids-generated.json`
+	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
 	echo.clog('reading local cids-generated.json...')
