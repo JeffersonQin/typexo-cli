@@ -291,14 +291,44 @@ def deploy(ctx):
 				echo.csuccess(f'POST SUCCESS: UPDATE CONTENT cid: {res["cid"]}, title: {deleted_titles[str(res["cid"])]}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		# meta
+		# read local metas in `metas.json`
 		local_metas = read.read_local_metas()
+		# read local metas in posts
 		post_metas = read.read_metas_in_posts()
+		# get remote metas
 		remote_metas = tformatter.format_metas(messenger.fetch_database('prod', 'metas'))
-
+		# diff metas between local and remote
 		new_metas, modified_metas, deleted_metas, deleted_names = tdiff.diff_metas(local_metas, post_metas, remote_metas)
-
+		# format the new & modified metas
+		new_metas_dict = { new_meta['hash']: new_meta['data'] for new_meta in new_metas }
+		modified_metas_dict = { modified_meta['mid']: modified_meta['data'] for modified_meta in modified_metas }
+		# post meta to server
 		res_add, res_update, res_delete = messenger.post_data('metas', 'prod', new_metas, modified_metas, deleted_metas)
-
+		# log meta response
+		# log add meta
+		for res in res_add:
+			if res['code'] == -1:
+				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (ADD META) FAILED FOR hash: {res["hash"]}, name: {new_metas_dict[res["hash"]]["name"]}')
+			elif res['code'] == 1:
+				echo.csuccess(f'POST SUCCESS: ADD META hash: {res["hash"]}, mid: {res["mid"]}, name: {new_metas_dict[res["hash"]]["name"]}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		# log update meta
+		for res in res_update:
+			if res['code'] == -1:
+				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (UPDATE META) FAILED FOR mid: {res["mid"]}, name: {modified_metas_dict[res["mid"]]["name"]}')
+			elif res['code'] == 1:
+				echo.csuccess(f'POST SUCCESS: UPDATE META mid: {res["mid"]}, name: {modified_metas_dict[res["mid"]]["name"]}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		# log delete meta
+		for res in res_delete:
+			if res['code'] == -1:
+				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (DELETE META) FAILED FOR mid: {res["mid"]}, title: {deleted_names[str(res["mid"])]}')
+			elif res['code'] == 1:
+				echo.csuccess(f'POST SUCCESS: UPDATE META mid: {res["mid"]}, title: {deleted_names[str(res["mid"])]}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 	except Exception as e:
 		echo.cerr(f'deploying failed. error: {repr(e)}')
 		traceback.print_exc()
