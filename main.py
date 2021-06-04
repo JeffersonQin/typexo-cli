@@ -88,7 +88,7 @@ def cli():
 @cli.command()
 def init():
 	'''
-	🚧 Initialize a git version control workplace from nothing
+	✅ Initialize a git version control workplace from nothing
 	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
@@ -100,9 +100,8 @@ def init():
 	try:
 		git_init_subprocess()
 		echo.csuccess('git initialization success.')
-		# TODO: write file structure
 		with open(readme_dir, 'w+', encoding='utf8') as f:
-			f.write('This file is created automatically by [typexo-cli](https://github.com/JeffersonQin/typexo-cli)')
+			f.write('This file is created automatically by [typexo-cli](https://github.com/JeffersonQin/typexo-cli)\n')
 		echo.csuccess('write file test success.')
 		add_res = git_repo().index.add(items=['README.md'])
 		echo.clog(f'add README.md: \n{add_res}')
@@ -480,6 +479,8 @@ def test():
 	print(read.read_local_dirs())
 	print(read.read_local_meta_name())
 	print(read.read_pairs_in_posts())
+	pair_data = messenger.fetch_database('prod', 'relationships')
+	print(pair_data)
 	pass
 
 #### Command Line Interface (CLI) End ####
