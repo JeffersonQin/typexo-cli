@@ -150,3 +150,84 @@ def read_local_cids():
 		echo.cexit(f'LOCAL CIDS READING FAILED')
 	finally:
 		echo.pop_subroutine()
+
+
+def read_local_dirs():
+	'''
+	return {<cid>: <dir>}
+	'''
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	echo.clog('reading local dirs...')
+	try:
+		res = {}
+		local_cids = read_local_cids()
+		for key in local_cids.keys():
+			res[str(local_cids[key])] = key
+		return res
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit(f'LOCAL DIRS READING FAILED')
+	finally:
+		echo.pop_subroutine()
+
+
+def read_local_meta_name():
+	'''
+	return {<mid>: {name: <name>, type: <type>}}
+	'''
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	echo.clog('reading local meta names...')
+	try:
+		res = {}
+		metas = read_local_metas()
+		for key in metas['tag'].keys():
+			res[str(metas['tag'][key]['mid'])] = {
+				'name': key,
+				'type': 'tag'
+			}
+		for key in metas['category'].keys():
+			res[str(metas['category'][key]['mid'])] = {
+				'name': key,
+				'type': 'category'
+			}
+		return res
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit(f'LOCAL DIRS READING FAILED')
+	finally:
+		echo.pop_subroutine()
+
+
+def read_pairs_in_posts():
+	'''
+	read pairs of metas with posts
+	'''
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	echo.clog('reading pairs in posts...')
+	try:
+		res = []
+		cids = read_local_cids() # {'dir': 'cid'}
+		metas = read_local_metas() # {'category': {<name>: {<data>}}, 'tag': {<name>: {<data>}}}
+		files = filter_markdown()
+		for file in files:
+			md_file = read_markdown_file(file)
+			index_dir = md_file['dir']
+			cid = cids[index_dir]
+			if 'tags' in md_file.keys():
+				for tag in md_file['tags']:
+					res.append((cid, metas['tag'][tag]['mid']))
+			if 'categories' in md_file.keys():
+				for category in md_file['categories']:
+					res.append((cid, metas['category'][category]['mid']))
+		return res
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit(f'LOCAL PAIRS READING FAILED')
+	finally:
+		echo.pop_subroutine()

@@ -329,6 +329,10 @@ def deploy(ctx):
 			elif res['code'] == 1:
 				echo.csuccess(f'POST SUCCESS: UPDATE META mid: {res["mid"]}, title: {deleted_names[str(res["mid"])]}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		# relationships
+
+		# fields
+		
 	except Exception as e:
 		echo.cerr(f'deploying failed. error: {repr(e)}')
 		traceback.print_exc()
@@ -473,6 +477,9 @@ def fix_git_utf8():
 
 @cli.command()
 def test():
+	print(read.read_local_dirs())
+	print(read.read_local_meta_name())
+	print(read.read_pairs_in_posts())
 	pass
 
 #### Command Line Interface (CLI) End ####
