@@ -287,7 +287,7 @@ def deploy(ctx):
 				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
 				raise Exception(f'POST REQUEST (DELETE CONTENT) FAILED FOR cid: {res["cid"]}, title: {deleted_titles[str(res["cid"])]}')
 			elif res['code'] == 1:
-				echo.csuccess(f'POST SUCCESS: UPDATE CONTENT cid: {res["cid"]}, title: {deleted_titles[str(res["cid"])]}')
+				echo.csuccess(f'POST SUCCESS: DELETE CONTENT cid: {res["cid"]}, title: {deleted_titles[str(res["cid"])]}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		# meta
 		# read local metas in `metas.json`
@@ -326,10 +326,56 @@ def deploy(ctx):
 				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
 				raise Exception(f'POST REQUEST (DELETE META) FAILED FOR mid: {res["mid"]}, title: {deleted_names[str(res["mid"])]}')
 			elif res['code'] == 1:
-				echo.csuccess(f'POST SUCCESS: UPDATE META mid: {res["mid"]}, title: {deleted_names[str(res["mid"])]}')
+				echo.csuccess(f'POST SUCCESS: DELETE META mid: {res["mid"]}, title: {deleted_names[str(res["mid"])]}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		####
+		ctx.invoke(pull, source='prod')
+		####
 		# relationships
-
+		# read pairs in posts
+		local_pairs = read.read_pairs_in_posts()
+		# get remote pairs
+		remote_pairs = messenger.fetch_database('prod', 'relationships')
+		# get cid => dir
+		cid_dir = read.read_local_dirs()
+		# get mid => type / name
+		mid_data = read.read_local_meta_name()
+		# diff pairs between local and remote
+		new_pairs, deleted_pairs = tdiff.diff_relationships(local_pairs, remote_pairs)
+		res_add, _, res_delete = messenger.post_data('relationships', 'prod', new_pairs, [], deleted_pairs)
+		# log pair response
+		# log add pairs
+		for res in res_add:
+			cid = res["cid"]
+			mid = res["mid"]
+			res_dir = 'NOT_IN_DB'
+			res_meta = 'NOT_IN_DB'
+			if str(cid) in cid_dir.keys():
+				res_dir = cid_dir[str(cid)]
+			if str(mid) in mid_data.keys():
+				res_meta = f'[{mid_data[str(mid)]["type"]}] {mid_data[str(mid)]["name"]}'
+			if res['code'] == -1:
+				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (ADD PAIR) FAILED FOR [cid, mid]:[{cid}, {mid}] {res_dir} => {res_meta}')
+			elif res['code'] == 1:
+				echo.csuccess(f'POST SUCCESS: ADD PAIR, [cid,mid]:[{cid}, {mid}] {res_dir} => {res_meta}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		# log delete pairs
+		for res in res_delete:
+			cid = res["cid"]
+			mid = res["mid"]
+			res_dir = 'NOT_IN_DB'
+			res_meta = 'NOT_IN_DB'
+			if str(cid) in cid_dir.keys():
+				res_dir = cid_dir[str(cid)]
+			if str(mid) in mid_data.keys():
+				res_meta = f'[{mid_data[str(mid)]["type"]}] {mid_data[str(mid)]["name"]}'
+			if res['code'] == -1:
+				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (DELETE PAIR) FAILED FOR [cid, mid]:[{cid}, {mid}] {res_dir} => {res_meta}')
+			elif res['code'] == 1:
+				echo.csuccess(f'POST SUCCESS: DELETE PAIR, [cid,mid]:[{cid}, {mid}] {res_dir} => {res_meta}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		# fields
 		
 	except Exception as e:

@@ -185,7 +185,50 @@ def diff_metas(local_metas: list, post_metas: list, remote_metas: list):
 
 
 def diff_relationships(local: list, remote: list):
-	return
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	echo.clog('differing relationships...')
+	try:
+		cid_dir = read.read_local_dirs()
+		mid_data = read.read_local_meta_name()
+		deleted_pairs = []
+		for item in remote:
+			if item not in local:
+				deleted_pairs.append(item)
+			else:
+				local.remove(item)
+		# log
+		echo.clog('---------- DIFF: PAIR SECTION START ----------')
+		echo.clog(f'NEW (Untracked): {len(local)} in total')
+		for new_pair in local:
+			cid = new_pair['cid']
+			mid = new_pair['mid']
+			c_dir = 'NOT_IN_DB'
+			m_meta = 'NOT_IN_DB'
+			if str(cid) in cid_dir.keys():
+				c_dir = cid_dir[str(cid)]
+			if str(mid) in mid_data.keys():
+				m_meta = f'[{mid_data[str(mid)]["type"]}] {mid_data[str(mid)]["name"]}'
+			echo.cerr(f'[U] [{cid}, {mid}] {c_dir} => {m_meta}')
+		echo.clog(f'DELETED: {len(deleted_pairs)} in total')
+		for deleted_pair in deleted_pairs:
+			cid = deleted_pair['cid']
+			mid = deleted_pair['mid']
+			c_dir = 'NOT_IN_DB'
+			m_meta = 'NOT_IN_DB'
+			if str(cid) in cid_dir.keys():
+				c_dir = cid_dir[str(cid)]
+			if str(mid) in mid_data.keys():
+				m_meta = f'[{mid_data[str(mid)]["type"]}] {mid_data[str(mid)]["name"]}'
+			echo.cerr(f'[D] [{cid}, {mid}] {c_dir} => {m_meta}')
+		echo.clog('---------- DIFF: PAIR SECTION END ----------')
+		return local, deleted_pairs # new, deleted
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit('DIFFERING RELATIONSHIPS FAILED')
+	finally:
+		echo.pop_subroutine()
 
 
 def diff_fields(local: list, remote: list):
