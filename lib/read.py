@@ -220,10 +220,10 @@ def read_pairs_in_posts():
 			cid = cids[index_dir]
 			if 'tags' in md_file.keys():
 				for tag in md_file['tags']:
-					res.append((cid, metas['tag'][tag]['mid']))
+					res.append({'cid': cid, 'mid': metas['tag'][tag]['mid']})
 			if 'categories' in md_file.keys():
 				for category in md_file['categories']:
-					res.append((cid, metas['category'][category]['mid']))
+					res.append({'cid': cid, 'mid': metas['category'][category]['mid']})
 		return res
 	except Exception as e:
 		echo.cerr(f'error: {repr(e)}')
