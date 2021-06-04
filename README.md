@@ -23,6 +23,8 @@
 	- [`fields`字段](#fields字段)
 	- [`defaultFields`字段](#defaultfields字段)
 - [使用注意事项](#使用注意事项)
+	- [不得编辑的文件](#不得编辑的文件)
+	- [可能出现的合并冲突](#可能出现的合并冲突)
 
 # 介绍
 
@@ -186,5 +188,15 @@ defaultFields:
 
 # 使用注意事项
 
-* **请勿直接在`metas.json`内添加新的`meta`，如果需要添加并更改属性，请使用其他方式，如：直接在浏览器中进行此操作 / 将新`meta`添加到一篇文章中，在`deploy`后再在`metas.json`中进行进行编辑**
+## 不得编辑的文件
 
+* **请勿直接在`metas.json`内添加新的`meta`，如果需要添加并更改属性，请使用其他方式，如：直接在浏览器中进行此操作 / 将新`meta`添加到一篇文章中，在`deploy`后再在`metas.json`中进行进行编辑**
+* **请勿编辑`cids-generated.json**
+
+## 可能出现的合并冲突
+
+由于文章的`meta`是自动生成的，所以在手动更改之后，可能与自动生成的不一致（比如说`tags`, `categories`中的顺序），为此，我们有时需要手动解决`conflict`。如下图：
+
+![](https://cdn.jsdelivr.net/gh/JeffersonQin/blog-asset@latest/usr/picgo/20210604202412.png)
+
+我们需要`accept incoming change`
