@@ -107,6 +107,15 @@ def get_meta_essential(meta: dict):
 	return res
 
 
+def get_field_repr(field: dict):
+	field['name'] = repr(field['name'])
+	if 'type' in field.keys():
+		if field['type'] == 'str':
+			field['value'] = repr(field['value'])
+		field['type'] = repr(field['type'])
+	return field
+
+
 def format_metas_for_contents(meta_data: list):
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 	

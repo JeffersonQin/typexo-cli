@@ -232,4 +232,50 @@ def diff_relationships(local: list, remote: list):
 
 
 def diff_fields(local: list, remote: list):
-	return
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	echo.clog('differing fields...')
+	try:
+		cid_dir = read.read_local_dirs()
+		new_fields = []
+		deleted_fields = []
+		for item in remote:
+			e_item = {
+				'cid': item['cid'],
+				'name': item['name'],
+				'type': item['type'],
+				'value': item[f'{item["type"]}_value']
+			}
+			if e_item not in local:
+				deleted_fields.append(tformatter.get_field_repr({
+					'cid': item['cid'],
+					'name': item['name']
+				}))
+			else:
+				local.remove(e_item)
+		for item in local:
+			new_fields.append(tformatter.get_field_repr(item))
+		# log
+		echo.clog('---------- DIFF: FIELDS SECTION START ----------')
+		echo.clog(f'NEW (Untracked): {len(new_fields)} in total')
+		for new_field in new_fields:
+			cid = new_field['cid']
+			c_dir = 'NOT_IN_DB'
+			if str(cid) in cid_dir.keys():
+				c_dir = cid_dir[str(cid)]
+			echo.cerr(f'[U] [{cid}] {c_dir} => {new_field["name"]}')
+		echo.clog(f'DELETED: {len(deleted_fields)} in total')
+		for deleted_field in deleted_fields:
+			cid = deleted_field['cid']
+			c_dir = 'NOT_IN_DB'
+			if str(cid) in cid_dir.keys():
+				c_dir = cid_dir[str(cid)]
+			echo.cerr(f'[D] [{cid}] {c_dir} => {deleted_field["name"]}')
+		echo.clog('---------- DIFF: FIELD SECTION END ----------')
+		return new_fields, deleted_fields # new, deleted
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit('DIFFERING RELATIONSHIPS FAILED')
+	finally:
+		echo.pop_subroutine()

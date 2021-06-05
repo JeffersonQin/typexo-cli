@@ -377,7 +377,43 @@ def deploy(ctx):
 				echo.csuccess(f'POST SUCCESS: DELETE PAIR, [cid,mid]:[{cid}, {mid}] {res_dir} => {res_meta}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		# fields
-		
+		# read fields in posts
+		local_fields = read.read_fields_in_posts()
+		# get remote fields
+		remote_fields = messenger.fetch_database('prod', 'fields')
+		# diff fields between local and remote
+		new_fields, deleted_fields = tdiff.diff_fields(local_fields, remote_fields)
+		res_add, _, res_delete = messenger.post_data('fields', 'prod', new_fields, [], deleted_fields)
+		# log field response
+		# log add fields
+		for res in res_add:
+			cid = res['cid']
+			name = res['name']
+			res_dir = 'NOT_IN_DB'
+			if str(cid) in cid_dir.keys():
+				res_dir = cid_dir[str(cid)]
+			if res['code'] == -1:
+				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (ADD FIELD) FAILED FOR [cid]:[{cid}] {res_dir} => {name}')
+			elif res['code'] == 1:
+				echo.csuccess(f'POST SUCCESS: ADD FIELD, [cid]:[{cid}] {res_dir} => {name}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		# log delete fields
+		for res in res_delete:
+			cid = res['cid']
+			name = res['name']
+			res_dir = 'NOT_IN_DB'
+			if str(cid) in cid_dir.keys():
+				res_dir = cid_dir[str(cid)]
+			if res['code'] == -1:
+				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (DELETE FIELD) FAILED FOR [cid]:[{cid}] {res_dir} => {name}')
+			elif res['code'] == 1:
+				echo.csuccess(f'POST SUCCESS: DELETE FIELD, [cid]:[{cid}] {res_dir} => {name}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		####
+		ctx.invoke(pull, source='prod')
+		####
 	except Exception as e:
 		echo.cerr(f'deploying failed. error: {repr(e)}')
 		traceback.print_exc()
@@ -522,11 +558,13 @@ def fix_git_utf8():
 
 @cli.command()
 def test():
-	print(read.read_local_dirs())
-	print(read.read_local_meta_name())
-	print(read.read_pairs_in_posts())
-	pair_data = messenger.fetch_database('prod', 'relationships')
-	print(pair_data)
+	# fields
+	# read fields in posts
+	local_fields = read.read_fields_in_posts()
+	# get remote fields
+	remote_fields = messenger.fetch_database('prod', 'fields')
+	# diff fields between local and remote
+	new_fields, deleted_fields = tdiff.diff_fields(local_fields, remote_fields)
 	pass
 
 #### Command Line Interface (CLI) End ####

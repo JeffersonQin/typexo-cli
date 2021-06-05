@@ -204,7 +204,7 @@ def read_local_meta_name():
 
 def read_pairs_in_posts():
 	'''
-	read pairs of metas with posts
+	read pairs of metas with posts [{'mid': <mid>, 'cid': <cid>}]
 	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
@@ -229,5 +229,37 @@ def read_pairs_in_posts():
 		echo.cerr(f'error: {repr(e)}')
 		traceback.print_exc()
 		echo.cexit(f'LOCAL PAIRS READING FAILED')
+	finally:
+		echo.pop_subroutine()
+
+
+def read_fields_in_posts():
+	'''
+	return [{'cid': <cid>, 'name': <name>, 'type': <type>, 'value': <value>}]
+	'''
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	echo.clog('reading fields in posts...')
+	try:
+		res = []
+		cids = read_local_cids() # {'dir': 'cid'}
+		files = filter_markdown()
+		for file in files:
+			md_file = read_markdown_file(file)
+			index_dir = md_file['dir']
+			cid = cids[index_dir]
+			if 'fields' in md_file.keys():
+				for field in md_file['fields'].keys():
+					res.append({
+						'cid': cid,
+						'type': globalvar.get_global('conf')['fields'][field],
+						'name': field,
+						'value': md_file['fields'][field]
+					})
+		return res
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit(f'LOCAL FIELDS READING FAILED')
 	finally:
 		echo.pop_subroutine()
