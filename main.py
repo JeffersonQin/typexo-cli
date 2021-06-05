@@ -481,12 +481,12 @@ def merge(branch: str):
 @cli.command()
 def push():
 	'''
-	❌ Update remote refs along with associated objects
+	✅ Update remote refs along with associated objects
 	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
 	echo.clog('pushing to remote')
-
+	git_safe_push()
 	echo.pop_subroutine()
 
 

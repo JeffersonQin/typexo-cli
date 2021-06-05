@@ -111,6 +111,11 @@ def git_delete_branch_subprocess(branch: str):
 def git_reset_head_hard_subprocess():
 	subprocess.call(['git', '-C', globalvar.get_global('wp_dir'), 'reset', '--hard', 'HEAD'])
 
+
+def git_push_to_remote_subprocess(branch:str):
+	subprocess.call(['git', '-C', globalvar.get_global('wp_dir'), 'push', globalvar.get_global('conf')['repo']['url'], f'{branch}:{branch}'])
+
+
 # warp
 
 def is_working_tree_clean():
@@ -126,7 +131,7 @@ def git_safe_switch(branch: str):
 		git_status_subprocess()
 		if not is_working_tree_clean():
 			echo.cerr('working tree not clean, make sure that all the changes are staged and committed.')
-			echo.clog('To add to index and commit: you can either stage and commit manually, or just try `clean-tree` command.')
+			echo.clog('To add to index and commit: you can either stage and commit manually, or just try `commit` command.')
 			echo.clog('To discard changes: you can either discard manually, or just try `discard-change` command.')
 			raise Exception('working tree not clean')
 		# PREREQUISITE: make sure that branch exists
@@ -209,6 +214,28 @@ def git_safe_discard_change():
 		if (user_in != 'y' and user_in != 'Y'):
 			echo.cexit('REJECTED')
 		git_reset_head_hard_subprocess()
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit(f'DISCARDING FAILED')
+	finally:
+		echo.pop_subroutine()
+
+
+def git_safe_push():
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+	
+	try:
+		git_status_subprocess()
+		if not is_working_tree_clean():
+			echo.cerr('working tree not clean, make sure that all the changes are staged and committed.')
+			echo.clog('To add to index and commit: you can either stage and commit manually, or just try `commit` command.')
+			echo.clog('To discard changes: you can either discard manually, or just try `discard-change` command.')
+			raise Exception('working tree not clean')
+		echo.clog('pushing `master` branch to remote repo...')
+		git_push_to_remote_subprocess('master')
+		echo.clog('pushing `prod` branch to remote repo...')
+		git_push_to_remote_subprocess('prod')
 	except Exception as e:
 		echo.cerr(f'error: {repr(e)}')
 		traceback.print_exc()

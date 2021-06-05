@@ -12,3 +12,5 @@ fields:
   customField1: str
   customField2: int
   customField3: float
+repo:
+  url: your-repo-url
