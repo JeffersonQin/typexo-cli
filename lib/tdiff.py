@@ -53,10 +53,11 @@ def diff_contents(local: list, local_cids: dict, remote: list):
 			}
 			# compare every attribute
 			for element in globalvar.get_global('content_check_essential'):
-				# convert line ending
-				if str(l_content[element]).replace('\r\n', '\n') != str(r_content[element]).replace('\r\n', '\n'):
-					identical = False
-					modify['data'][element] = tformatter.get_warped_mysql_value(element, l_content[element])
+				if element in l_content.keys():
+					# convert line ending
+					if str(l_content[element]).replace('\r\n', '\n') != str(r_content[element]).replace('\r\n', '\n'):
+						identical = False
+						modify['data'][element] = tformatter.get_warped_mysql_value(element, l_content[element])
 			if not identical:
 				# add attribute: modified date
 				if 'modified' not in modify['data'].keys():
