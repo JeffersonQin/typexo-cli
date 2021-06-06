@@ -157,6 +157,7 @@ def clone():
 		return
 	try:
 		git_clone_from_remote()
+		structure.check_dirs()
 	except Exception as e:
 		echo.cerr(f'error: {repr(e)}')
 		traceback.print_exc()
