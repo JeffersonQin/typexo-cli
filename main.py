@@ -247,10 +247,11 @@ def diff(source: str):
 
 
 @cli.command()
+@click.argument('source', type=click.Choice(['prod', 'test']))
 @click.pass_context
-def deploy(ctx):
+def deploy(source, ctx):
 	'''
-	🚧 Deploy the local workspace to PROD server
+	🚧 Deploy the local workspace to a server
 	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
@@ -258,11 +259,11 @@ def deploy(ctx):
 	try:
 		# safe checkout to master
 		git_safe_switch('master')
-		# pull from server (in which will safe checkout to prod)
-		ctx.invoke(pull, source='prod')
+		# pull from server (in which will safe checkout to source)
+		ctx.invoke(pull, source=source)
 		# content
 		# get remote contents
-		remote_contents = messenger.fetch_database('prod', 'contents')
+		remote_contents = messenger.fetch_database(source, 'contents')
 		# read local contents
 		local_contents = read.read_local_contents()
 		# read local cids-generated.json
@@ -273,7 +274,7 @@ def deploy(ctx):
 		new_contents_dict = { new_content['hash']: new_content for new_content in new_contents }
 		modified_contents_dict = { modified_content['cid']: modified_content for modified_content in modified_contents }
 		# post content to server
-		res_add, res_update, res_delete = messenger.post_data('contents', 'prod', new_contents, modified_contents, deleted_contents)
+		res_add, res_update, res_delete = messenger.post_data('contents', source, new_contents, modified_contents, deleted_contents)
 		# log post response
 		# log add content
 		for res in res_add:
@@ -305,14 +306,14 @@ def deploy(ctx):
 		# read local metas in posts
 		post_metas = read.read_metas_in_posts()
 		# get remote metas
-		remote_metas = tformatter.format_metas(messenger.fetch_database('prod', 'metas'))
+		remote_metas = tformatter.format_metas(messenger.fetch_database(source, 'metas'))
 		# diff metas between local and remote
 		new_metas, modified_metas, deleted_metas, deleted_names = tdiff.diff_metas(local_metas, post_metas, remote_metas)
 		# format the new & modified metas
 		new_metas_dict = { new_meta['hash']: new_meta['data'] for new_meta in new_metas }
 		modified_metas_dict = { modified_meta['mid']: modified_meta['data'] for modified_meta in modified_metas }
 		# post meta to server
-		res_add, res_update, res_delete = messenger.post_data('metas', 'prod', new_metas, modified_metas, deleted_metas)
+		res_add, res_update, res_delete = messenger.post_data('metas', source, new_metas, modified_metas, deleted_metas)
 		# log meta response
 		# log add meta
 		for res in res_add:
@@ -339,20 +340,20 @@ def deploy(ctx):
 				echo.csuccess(f'POST SUCCESS: DELETE META mid: {res["mid"]}, title: {deleted_names[str(res["mid"])]}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		####
-		ctx.invoke(pull, source='prod')
+		ctx.invoke(pull, source=source)
 		####
 		# relationships
 		# read pairs in posts
 		local_pairs = read.read_pairs_in_posts()
 		# get remote pairs
-		remote_pairs = messenger.fetch_database('prod', 'relationships')
+		remote_pairs = messenger.fetch_database(source, 'relationships')
 		# get cid => dir
 		cid_dir = read.read_local_dirs()
 		# get mid => type / name
 		mid_data = read.read_local_meta_name()
 		# diff pairs between local and remote
 		new_pairs, deleted_pairs = tdiff.diff_relationships(local_pairs, remote_pairs)
-		res_add, _, res_delete = messenger.post_data('relationships', 'prod', new_pairs, [], deleted_pairs)
+		res_add, _, res_delete = messenger.post_data('relationships', source, new_pairs, [], deleted_pairs)
 		# log pair response
 		# log add pairs
 		for res in res_add:
@@ -390,10 +391,10 @@ def deploy(ctx):
 		# read fields in posts
 		local_fields = read.read_fields_in_posts()
 		# get remote fields
-		remote_fields = messenger.fetch_database('prod', 'fields')
+		remote_fields = messenger.fetch_database(source, 'fields')
 		# diff fields between local and remote
 		new_fields, deleted_fields = tdiff.diff_fields(local_fields, remote_fields)
-		res_add, _, res_delete = messenger.post_data('fields', 'prod', new_fields, [], deleted_fields)
+		res_add, _, res_delete = messenger.post_data('fields', source, new_fields, [], deleted_fields)
 		# log field response
 		# log add fields
 		for res in res_add:
@@ -422,7 +423,7 @@ def deploy(ctx):
 				echo.csuccess(f'POST SUCCESS: DELETE FIELD, [cid]:[{cid}] {res_dir} => {name}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		####
-		ctx.invoke(pull, source='prod')
+		ctx.invoke(pull, source=source)
 		####
 	except Exception as e:
 		echo.cerr(f'deploying failed. error: {repr(e)}')

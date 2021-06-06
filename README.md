@@ -17,7 +17,7 @@
 	- [✅ `push`](#-push)
 	- [✅ `new [--draft] {post|page} TITLE`](#-new---draft-postpage-title)
 	- [🚧 `diff {prod|test}`](#-diff-prodtest)
-	- [🚧 `deploy`](#-deploy)
+	- [🚧 `deploy {prod|test}`](#-deploy-prodtest)
 	- [❌ `test`](#-test)
 - [配置文件](#配置文件)
 	- [`prod`字段](#prod字段)
@@ -147,9 +147,9 @@ Reference: http://howiefh.github.io/2014/10/11/git-encoding/
 
 与远程`typexo-server`服务器传回的内容进行比对，列出更改 / 删除 / 增加过的项目。
 
-## 🚧 `deploy`
+## 🚧 `deploy {prod|test}`
 
-部署到`prod`环境。
+将内容更改上传到`prod` / `test`.
 
 ## ❌ `test`
 
