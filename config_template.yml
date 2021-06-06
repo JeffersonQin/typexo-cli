@@ -4,10 +4,22 @@ remote:
 test:
   token: your-token
   url: your-url-not-ending-with-dash
+defaultProperties:
+  allowComment: true
+  allowFeed: true
+  allowPing: true
+  authorId: 1
+  categories: []
+  parent: 0
+  password: ''
+  status: publish
+  tags: []
+  template: ''
 defaultFields:
   customField1: value1
   customField2: 1
   customField3: 2.3
+defaultSlugType: title
 fields:
   customField1: str
   customField2: int
