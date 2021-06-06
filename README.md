@@ -18,7 +18,7 @@
 	- [✅ `new [--draft] {post|page} TITLE`](#-new---draft-postpage-title)
 	- [🚧 `diff {prod|test}`](#-diff-prodtest)
 	- [🚧 `deploy {prod|test}`](#-deploy-prodtest)
-	- [❌ `test`](#-test)
+	- [🚧 `server`](#-server)
 - [配置文件](#配置文件)
 	- [`prod`字段](#prod字段)
 	- [`test`字段](#test字段)
@@ -151,7 +151,7 @@ Reference: http://howiefh.github.io/2014/10/11/git-encoding/
 
 将内容更改上传到`prod` / `test`.
 
-## ❌ `test`
+## 🚧 `server`
 
 本地搭建`test`环境，导入`sql`表，搭建`typecho`的`php-server`
 

@@ -8,6 +8,7 @@ import shutil
 import time
 import traceback
 import copy
+import subprocess
 
 
 # initialize paths & caches
@@ -15,6 +16,7 @@ root_dir = os.path.split(os.path.abspath(__file__))[0]
 lib_dir = os.path.join(root_dir, './lib/')
 config_dir = os.path.join(root_dir, 'config.yml')
 wp_dir = os.path.join(root_dir, './workplace/')
+site_dir = os.path.join(root_dir, './site/')
 readme_dir = os.path.join(wp_dir, 'README.md')
 
 # import lib
@@ -61,6 +63,7 @@ typecho_type_int = ['created', 'modified', 'authorId', 'parent']
 globalvar.set_global('conf', {})
 globalvar.set_global('cmd_name', 'main')
 globalvar.set_global('wp_dir', wp_dir)
+globalvar.set_global('site_dir', site_dir)
 globalvar.set_global('root_dir', root_dir)
 globalvar.set_global('lib_dir', lib_dir)
 globalvar.set_global('config_dir', config_dir)
@@ -431,6 +434,14 @@ def deploy(source, ctx):
 		echo.cexit('DEPLOYING FAILED')
 	finally:
 		echo.pop_subroutine()
+
+
+@cli.command()
+def server():
+	'''
+	🚧 Start a test PHP server locally
+	'''
+	# subprocess.call(['php', '-S', '127.0.0.1:7777', '-t', globalvar.get_global('site_dir')])
 
 
 @cli.command()
