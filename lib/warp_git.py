@@ -116,6 +116,10 @@ def git_push_to_remote_subprocess(branch:str):
 	subprocess.call(['git', '-C', globalvar.get_global('wp_dir'), 'push', globalvar.get_global('conf')['repo']['url'], f'{branch}:{branch}'])
 
 
+def git_clone_from_remote():
+	subprocess.call(['git', 'clone', globalvar.get_global('conf')['repo']['url'], globalvar.get_global('wp_dir')])
+
+
 # warp
 
 def is_working_tree_clean():

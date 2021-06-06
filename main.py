@@ -144,16 +144,25 @@ def rm():
 
 
 @cli.command()
-@click.argument('repo')
-def clone(repo: str):
+def clone():
 	'''
-	❌ Clone the workplace from remote repo
+	✅ Clone the workplace from remote repo
 	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
-	echo.clog('cloning from remote repo...')
-
-	echo.pop_subroutine()
+	echo.clog('cloning workplace from remote...')
+	if not os.path.exists(wp_dir): os.mkdir(wp_dir)
+	if os.listdir(wp_dir) != []:
+		echo.cerr('workplace folder is not empty. Try "rm" command first.')
+		return
+	try:
+		git_clone_from_remote()
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit('CLONE FAILED')
+	finally:
+		echo.pop_subroutine()
 
 
 @cli.command()

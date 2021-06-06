@@ -12,7 +12,7 @@
 	- [✅ `merge {prod|test}`](#-merge-prodtest)
 	- [✅ `fix-git-utf8`](#-fix-git-utf8)
 	- [✅ `prod-test`](#-prod-test)
-	- [❌ `clone <repo>`](#-clone-repo)
+	- [✅ `clone`](#-clone)
 	- [✅ `pull {prod|test}`](#-pull-prodtest)
 	- [✅ `push`](#-push)
 	- [🚧 `diff {prod|test}`](#-diff-prodtest)
@@ -123,9 +123,9 @@ Reference: http://howiefh.github.io/2014/10/11/git-encoding/
 
 对生产环境进行连通性测试。
 
-## ❌ `clone <repo>`
+## ✅ `clone`
 
-从远程仓库拉取`workplace`
+从远程仓库拉取`workplace`，需要在`config.yml`中配置。
 
 ## ✅ `pull {prod|test}`
 
