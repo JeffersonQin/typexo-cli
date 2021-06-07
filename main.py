@@ -250,9 +250,9 @@ def diff(source: str):
 
 
 @cli.command()
-@click.argument('source', type=click.Choice(['prod', 'test']))
 @click.pass_context
-def deploy(source, ctx):
+@click.argument('source', type=click.Choice(['prod', 'test']))
+def deploy(ctx, source):
 	'''
 	🚧 Deploy the local workspace to a server
 	'''
