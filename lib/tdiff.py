@@ -280,3 +280,33 @@ def diff_fields(local: list, remote: list):
 		echo.cexit('DIFFERING RELATIONSHIPS FAILED')
 	finally:
 		echo.pop_subroutine()
+
+
+def calculate_count(local_pairs: list):
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	echo.clog('recalculating counts...')
+	try:
+		mid_data = read.read_local_meta_name()
+		cnt = {}
+		for pair in local_pairs:
+			if str(pair['mid']) not in cnt.keys():
+				cnt[str(pair['mid'])] = 1
+			else:
+				cnt[str(pair['mid'])] += 1
+		res = []
+		for mid in cnt.keys():
+			res.append({
+				'mid': int(mid),
+				'data': {
+					'count': cnt[mid]
+				}
+			})
+			echo.clog(f'[meta count] [{mid_data[mid]["type"]}] {mid_data[mid]["name"]} = {cnt[mid]}')
+		return res
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit('DIFFERING RELATIONSHIPS FAILED')
+	finally:
+		echo.pop_subroutine()

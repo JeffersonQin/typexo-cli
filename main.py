@@ -224,7 +224,7 @@ def pull(source: str):
 @click.argument('source', type=click.Choice(['prod', 'test']))
 def diff(source: str):
 	'''
-	🚧 Show difference between local workplace and prod / test
+	✅ Show difference between local workplace and prod / test
 	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
@@ -330,9 +330,9 @@ def deploy(ctx, source):
 		for res in res_update:
 			if res['code'] == -1:
 				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
-				raise Exception(f'POST REQUEST (UPDATE META) FAILED FOR mid: {res["mid"]}, name: {modified_metas_dict[res["mid"]]["name"]}')
+				raise Exception(f'POST REQUEST (UPDATE META) FAILED FOR mid: {res["mid"]}, name: {modified_metas_dict[str(res["mid"])]["name"]}')
 			elif res['code'] == 1:
-				echo.csuccess(f'POST SUCCESS: UPDATE META mid: {res["mid"]}, name: {modified_metas_dict[res["mid"]]["name"]}')
+				echo.csuccess(f'POST SUCCESS: UPDATE META mid: {res["mid"]}, name: {modified_metas_dict[str(res["mid"])]["name"]}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		# log delete meta
 		for res in res_delete:
@@ -424,6 +424,22 @@ def deploy(ctx, source):
 				raise Exception(f'POST REQUEST (DELETE FIELD) FAILED FOR [cid]:[{cid}] {res_dir} => {name}')
 			elif res['code'] == 1:
 				echo.csuccess(f'POST SUCCESS: DELETE FIELD, [cid]:[{cid}] {res_dir} => {name}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		####
+		ctx.invoke(pull, source=source)
+		####
+		# recount count
+		meta_count = tdiff.calculate_count(read.read_pairs_in_posts())
+		meta_data = read.read_local_meta_name()
+		# post meta to server
+		_, res_update, _ = messenger.post_data('metas', source, [], meta_count, [])
+		# log update meta
+		for res in res_update:
+			if res['code'] == -1:
+				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (UPDATE META) FAILED FOR mid: {res["mid"]}, name: {meta_data[str(res["mid"])]["name"]}')
+			elif res['code'] == 1:
+				echo.csuccess(f'POST SUCCESS: UPDATE META mid: {res["mid"]}, name: {meta_data[str(res["mid"])]["name"]}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		####
 		ctx.invoke(pull, source=source)
@@ -634,13 +650,6 @@ def fix_git_utf8():
 
 @cli.command()
 def test():
-	# fields
-	# read fields in posts
-	local_fields = read.read_fields_in_posts()
-	# get remote fields
-	remote_fields = messenger.fetch_database('prod', 'fields')
-	# diff fields between local and remote
-	new_fields, deleted_fields = tdiff.diff_fields(local_fields, remote_fields)
 	pass
 
 #### Command Line Interface (CLI) End ####
