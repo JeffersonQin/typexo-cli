@@ -16,6 +16,7 @@
 	- [✅ `pull {prod|test}`](#-pull-prodtest)
 	- [✅ `push`](#-push)
 	- [✅ `new [--draft] {post|page} TITLE`](#-new---draft-postpage-title)
+	- [✅ `import [--draft] {post|page} FILE`](#-import---draft-postpage-file)
 	- [🚧 `diff {prod|test}`](#-diff-prodtest)
 	- [✅ `deploy {prod|test}`](#-deploy-prodtest)
 	- [🚧 `server`](#-server)
@@ -142,6 +143,10 @@ Reference: http://howiefh.github.io/2014/10/11/git-encoding/
 ## ✅ `new [--draft] {post|page} TITLE`
 
 创建新内容。如果使用`--draft`选项则代表是草稿，`TITLE`是文章标题。
+
+## ✅ `import [--draft] {post|page} FILE`
+
+导入markdown文件。如果使用`--draft`选项则代表是草稿，`FILE`是文件路径。
 
 ## 🚧 `diff {prod|test}`
 

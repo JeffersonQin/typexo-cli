@@ -514,6 +514,62 @@ def new(type: str, draft: bool, title: str):
 		echo.pop_subroutine()
 
 
+@cli.command(name='import')
+@click.argument('type', type=click.Choice(['post', 'page']))
+@click.option('--draft', is_flag=True, default=False)
+@click.argument('file', type=click.Path(exists=True))
+def import_command(type: str, draft: bool, file: str):
+	'''
+	✅ Import a markdown file to workplace
+	'''
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	echo.clog(f'importing markdown file: {file}')
+	try:
+		# file type
+		file_type = type
+		if draft: file_type = f'{file_type}_draft'
+		# file name
+		file_name = utils.slugify(os.path.basename(file)[:-3])
+		# create time
+		time_stamp = int(os.path.getctime(file))
+		year = str(time.localtime(time_stamp).tm_year)
+		mon = str(time.localtime(time_stamp).tm_mon)
+		# dir
+		base_dir = os.path.join(globalvar.get_global('wp_dir'), f'{file_type}s')
+		year_dir = os.path.join(base_dir, year)
+		mon_dir = os.path.join(year_dir, mon)
+		save_dir = os.path.join(mon_dir, f'./{file_name}.md')
+		# check whether exists
+		if not os.path.exists(year_dir): os.mkdir(year_dir)
+		if not os.path.exists(mon_dir): os.mkdir(mon_dir)
+		# read default meta profile
+		meta_data = globalvar.get_global('conf')['defaultProperties']
+		meta_data['created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time_stamp))
+		meta_data['modified'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(os.path.getmtime(file))))
+		meta_data['title'] = file_name
+		meta_data['type'] = file_type
+		meta_data['fields'] = globalvar.get_global('conf')['defaultFields']
+		if globalvar.get_global('conf')['defaultSlugType']:
+			meta_data['slug'] = file_name
+		# dump yaml
+		meta = yaml.dump(meta_data, allow_unicode=True, default_flow_style=None)
+		# dump
+		with open(save_dir, 'w+', encoding='utf8') as f:
+			f.write('---\n')
+			f.write(meta)
+			f.write('---\n')
+			with open(file, 'r') as f1:
+				f.write(f1.read())
+		echo.csuccess(f'new item success: /{file_type}s/{year}/{mon}/{file_name}.md')
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit('FILE IMPORT FAILED')
+	finally:
+		echo.pop_subroutine()
+
+
 @cli.command()
 def status():
 	'''
