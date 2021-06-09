@@ -1,4 +1,4 @@
-remote:
+prod:
   token: your-token
   url: your-url-not-ending-with-dash
 test:
