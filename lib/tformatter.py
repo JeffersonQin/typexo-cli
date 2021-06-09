@@ -70,7 +70,7 @@ def md2typecho(data: dict):
 			else: data['allowFeed'] = '0'
 		# format nulls
 		for key in data.keys():
-			if data[key] == '': data[key] = None
+			if data[key] == '' and key != 'text': data[key] = None
 		# format content
 		if not data['text'].startswith('<!--markdown-->'):
 			data['text'] = f"<!--markdown-->{data['text']}"
