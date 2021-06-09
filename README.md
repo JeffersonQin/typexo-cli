@@ -1,7 +1,21 @@
+# 介绍
+
+受到`Hexo`这样的基于`nodejs`的，可以本地编辑的博客的启发，`typexo`旨在对于`typecho`的博客开发类似的功能。本项目`typexo-cli`是本地端的实现，用于编辑内容、本地测试、远程部署。
+
+**目前本项目仅针对`MySQL`数据库进行开发，其他数据库日后会进行支持。**
+
+**目前本项目不支持`typecho`的`attachments`, 解决方案是使用自己的图床, 该功能可能会在日后支持（可能性不大）。**
+
+**请注意：服务端程序会直接对数据库进行操作，如果你不知道程序在干什么，请勿执行。硬盘有价，数据无价。请确保在操作之前对数据库进行备份。**
+
 - [介绍](#介绍)
-- [环境](#环境)
+- [环境及依赖项](#环境及依赖项)
 - [术语](#术语)
 - [原理以及流程](#原理以及流程)
+- [准备就绪，开始！](#准备就绪开始)
+	- [在服务器搭好`typexo-server`](#在服务器搭好typexo-server)
+	- [配置`config.yml`](#配置configyml)
+	- [Quick Start](#quick-start)
 - [关于本地测试服务器](#关于本地测试服务器)
 - [命令说明](#命令说明)
 	- [✅ `init`](#-init)
@@ -33,21 +47,31 @@
 		- [meta顺序更换问题](#meta顺序更换问题)
 		- [以`cid`作为`slug`的问题](#以cid作为slug的问题)
 
-# 介绍
+# 环境及依赖项
 
-受到`Hexo`这样的基于`nodejs`的，可以本地编辑的博客的启发，`typexo`旨在对于`typecho`的博客开发类似的功能。本项目`typexo-cli`是本地端的实现，用于编辑内容、本地测试、远程部署。
-
-目前本项目仅针对`MySQL`数据库进行开发，其他数据库日后会进行支持。
-
-**请注意：服务端程序会直接对数据库进行操作，如果你不知道程序在干什么，请勿执行。硬盘有价，数据无价。请确保在操作之前对数据库进行备份。**
-
-# 环境
-
-- Python 3.7+
-- Linux (WSL)
-- Git
-- MySQL (可选，用于本地测试服务器)
-- PHP (可选，用于本地测试服务器)
+- Client
+  - Python 3.6+
+  - Linux (WSL)
+  - Git
+  - MySQL (可选，用于本地测试服务器)
+  - PHP (可选，用于本地测试服务器)
+  - Python依赖项
+    - pyyaml
+    - click
+    - requests
+    - GitPython
+- Server
+  - Python 3.6+
+  - MySQL (目前仅支持此数据库)
+  - Python依赖项
+    - pyyaml
+    - pymysql
+    - pandas
+    - uvicorn
+    - requests
+    - fastapi
+    - typing
+    - pydantic
 
 # 术语
 
@@ -74,6 +98,31 @@
 - 在本项目中，所有的`checkout` (切换分支) 操作的先决条件是 `working tree clean` ，如果还有更改没有提交，将会拒绝分支切换请求；
 - `test`分支在进行任意的合并操作之后会被自动删除，`prod`分支不会。如果没有合理的原因，请不要删除`prod`分支，否则会引发数据混乱；
 - 在进行`deploy`的时候，我们并没有采用`git`的两个分支之间的`diff`，而是直接再度拉取服务器端的数据，直接进行比对。这样做的原因其实只是`GitPython`这块文档写得太含糊了...
+
+# 准备就绪，开始！
+
+## 在服务器搭好`typexo-server`
+
+[typexo-server@使用方法](https://github.com/JeffersonQin/typexo-server#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95)
+
+## 配置`config.yml`
+
+- 将`config_template.yml`复制重命名为`config.yml`
+- 按照[配置文件节](#配置文件)配置
+
+## Quick Start
+
+初始化项目文件夹：
+
+```bash
+python3 main.py init
+```
+
+从生产环境拉取：
+
+```bash
+python3 main.py pull prod
+```
 
 # 关于本地测试服务器
 
