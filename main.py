@@ -181,21 +181,10 @@ def pull(source: str):
 	try:
 		# safe switch to `source` branch
 		git_safe_switch(source)
-		# delete all files except `.git`
-		for sub_dir in os.listdir(wp_dir):
-			if os.path.isdir(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_essential_structure['folders']): 
-				shutil.rmtree(os.path.join(wp_dir, sub_dir))
-			if os.path.isfile(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_essential_structure['files']):
-				os.remove(os.path.join(wp_dir, sub_dir))
 		# ---------------------------- #
-		# dumping section start
-		# check structure
-		res = structure.check_dirs()
-		# meta
+		# fetching data
 		meta_data = messenger.fetch_database(source, 'metas')
-		tdump.dump_metas(tformatter.format_metas(copy.deepcopy(meta_data)))
-		meta_data = tformatter.format_metas_for_contents(meta_data)
-		# relationship
+		# relationships
 		pair_data = messenger.fetch_database(source, 'relationships')
 		pair_data = tformatter.format_relationships(pair_data)
 		# fields
@@ -203,6 +192,19 @@ def pull(source: str):
 		field_data = tformatter.format_fields(field_data)
 		# content
 		content_data = messenger.fetch_database(source, 'contents')
+		# ---------------------------- #
+		# delete all files except `.git`
+		for sub_dir in os.listdir(wp_dir):
+			if os.path.isdir(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_essential_structure['folders']): 
+				shutil.rmtree(os.path.join(wp_dir, sub_dir))
+			if os.path.isfile(os.path.join(wp_dir, sub_dir)) and (sub_dir in wp_essential_structure['files']):
+				os.remove(os.path.join(wp_dir, sub_dir))
+		# ---------------------------- #
+		# check structure
+		res = structure.check_dirs()
+		# dumping data
+		tdump.dump_metas(tformatter.format_metas(copy.deepcopy(meta_data)))
+		meta_data = tformatter.format_metas_for_contents(meta_data)
 		res = tdump.dump_contents(content_data, meta_data=meta_data, pair_data=pair_data, field_data=field_data)
 		# ---------------------------- #
 		echo.clog('git status')
