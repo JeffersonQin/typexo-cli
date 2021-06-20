@@ -112,16 +112,55 @@
 
 ## Quick Start
 
+准备一个空文件夹 (`root_dir`)，讲`typexo-cli`克隆到该文件夹内：
+```
+root_dir
+└── typexo-cli
+```
+
 初始化项目文件夹：
 
 ```bash
-python3 main.py init
+python3 typexo-cli/main.py init
+```
+
+会产生`workplace`目录：
+
+```
+root_dir
+├── typexo-cli
+└── workplace
 ```
 
 从生产环境拉取：
 
 ```bash
 python3 main.py pull prod
+```
+
+最终目录结构：
+
+```
+root_dir
+├── typexo-cli
+│   ├── README
+│   ├── README.md
+│   ├── cache
+│   ├── config.yml
+│   ├── config_template.yml
+│   ├── imgs
+│   ├── lib
+│   ├── main.py
+│   ├── server
+│   └── site
+└── workplace
+    ├── README.md
+    ├── cids-generated.json
+    ├── metas.json
+    ├── page_drafts
+    ├── pages
+    ├── post_drafts
+    └── posts
 ```
 
 # 关于本地测试服务器

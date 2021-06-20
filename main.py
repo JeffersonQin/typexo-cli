@@ -15,7 +15,7 @@ import subprocess
 root_dir = os.path.split(os.path.abspath(__file__))[0]
 lib_dir = os.path.join(root_dir, './lib/')
 config_dir = os.path.join(root_dir, 'config.yml')
-wp_dir = os.path.join(root_dir, './workplace/')
+wp_dir = os.path.join(root_dir, '../workplace/')
 site_dir = os.path.join(root_dir, './site/')
 readme_dir = os.path.join(wp_dir, 'README.md')
 

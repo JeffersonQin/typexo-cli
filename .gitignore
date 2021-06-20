@@ -1,6 +1,5 @@
 config.yml
 .vscode/
-workplace/
 cache
 __pycache__/
 site/
