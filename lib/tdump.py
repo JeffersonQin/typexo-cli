@@ -68,6 +68,10 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 				item['fields'] = field_data[str(cid)]
 			
 			meta = yaml.dump(item, allow_unicode=True, default_flow_style=None)
+			
+			content = str(content).replace('\r\n', '\n')
+			meta = str(meta).replace('\r\n', '\n')
+			
 			# start dumping
 			with open(os.path.join(mon_dir, f'{file_name}.md'), 'w+', encoding='utf8') as f:
 				f.write('---\n')
@@ -82,7 +86,6 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 								ensure_ascii=False,
 								separators=(',', ': '))
 		echo.csuccess(f'success: dumping finished.')
-		echo.csuccess(f'success: pulling finished.')
 	except Exception as e:
 		echo.cerr(f'error: /{ctype}/{create_year}/{create_month}/{file_name}.md')
 		echo.cerr(f'error: {repr(e)}')
