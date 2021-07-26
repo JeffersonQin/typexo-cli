@@ -29,6 +29,7 @@
 	- [✅ `clone`](#-clone)
 	- [✅ `pull {prod|test}`](#-pull-prodtest)
 	- [✅ `push`](#-push)
+	- [✅ `format`](#-format)
 	- [✅ `new [--draft] {post|page} TITLE`](#-new---draft-postpage-title)
 	- [✅ `import [--draft] {post|page} FILE`](#-import---draft-postpage-file)
 	- [🚧 `diff {prod|test}`](#-diff-prodtest)
@@ -227,6 +228,10 @@ Reference: http://howiefh.github.io/2014/10/11/git-encoding/
 ## ✅ `push`
 
 将 `workplace` 推送到远程仓库，需要在`config.yml`中配置。
+
+## ✅ `format`
+
+格式化所有`markdown`文件，即自动对于各种`meta`进行排序。
 
 ## ✅ `new [--draft] {post|page} TITLE`
 

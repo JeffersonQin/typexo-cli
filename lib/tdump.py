@@ -95,6 +95,35 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 		echo.pop_subroutine()
 
 
+def dump_contents_raw(content_data: dict):
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+	
+	echo.clog('dumping contents (raw)...')
+	try:
+		for dir in content_data.keys():
+			meta = content_data[dir]
+			content = meta['text']
+			meta.pop('text')
+			meta = yaml.dump(meta, allow_unicode=True, default_flow_style=None)
+
+			content = str(content).replace('\r\n', '\n')
+			meta = str(meta).replace('\r\n', '\n')
+			
+			with open(dir, 'w', encoding='utf8') as f:
+				f.write('---\n')
+				f.write(meta)
+				f.write('---\n')
+				f.write(content)
+			echo.csuccess(f'success: {dir}')
+		echo.csuccess(f'success: dumping (raw) finished.')
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit('CONTENT DUMPING FAILED')
+	finally:
+		echo.pop_subroutine()
+
+
 def dump_metas(meta_data: dict):
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 	

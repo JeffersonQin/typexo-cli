@@ -516,6 +516,24 @@ def new(type: str, draft: bool, title: str):
 		echo.pop_subroutine()
 
 
+@cli.command()
+def format():
+	'''
+	🚧 Format files
+	'''
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	echo.clog('formtting files')
+	try:
+		tdump.dump_contents_raw(read.read_local_contents_raw())
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit('FORMATTING FILES FAILED')
+	finally:
+		echo.pop_subroutine()
+
+
 @cli.command(name='import')
 @click.argument('type', type=click.Choice(['post', 'page']))
 @click.option('--draft', is_flag=True, default=False)

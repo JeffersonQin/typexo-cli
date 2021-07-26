@@ -41,6 +41,37 @@ def read_markdown_file(dir: str, silent=True):
 		echo.pop_subroutine()
 
 
+def read_markdown_file_raw(dir: str, silent=True):
+	'''
+	read everything in markdown file (raw)
+	'''
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	if not silent:
+		echo.clog(f'reading: {dir}')
+	try:
+		with open(dir, 'r') as f:
+			# front matter
+			if f.readline() != '---\n':
+				raise Exception('broken format: front matter detection error.')
+			config = ''
+			new_line = f.readline()
+			while new_line != '---\n':
+				config = f'{config}{new_line}'
+				new_line = f.readline()
+			res = yaml.load(config, Loader=yaml.FullLoader)
+			# content
+			res['text'] = f.read()
+			return res
+	except Exception as e:
+		echo.cerr(f'error occurred: {dir}')
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit(f'MARKDOWN READING FAILED')
+	finally:
+		echo.pop_subroutine()
+
+
 def filter_markdown():
 	'''
 	filter out markdown files in the workspace
@@ -78,6 +109,29 @@ def read_local_contents():
 		files = filter_markdown()
 		for file in files:
 			res.append(read_markdown_file(file))
+		return res
+	except Exception as e:
+		echo.cerr(f'error: {repr(e)}')
+		traceback.print_exc()
+		echo.cexit(f'LOCAL FILES READING FAILED')
+	finally:
+		echo.pop_subroutine()
+
+
+def read_local_contents_raw():
+	'''
+	filter_markdown + read_markdown_file_raw
+
+	return {'<dir>': {<contents>}}
+	'''
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+
+	echo.clog('reading local files...')
+	try:
+		res = {}
+		files = filter_markdown()
+		for file in files:
+			res[file] = read_markdown_file_raw(file)
 		return res
 	except Exception as e:
 		echo.cerr(f'error: {repr(e)}')
