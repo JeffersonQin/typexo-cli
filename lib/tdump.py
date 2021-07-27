@@ -104,8 +104,9 @@ def dump_contents_raw(content_data: dict):
 			meta = content_data[dir]
 			content = meta['text']
 			meta.pop('text')
-			meta = yaml.dump(meta, allow_unicode=True, default_flow_style=None)
-
+			meta['tags'].sort()
+			meta['categories'].sort()
+			meta = yaml.dump(meta, allow_unicode=True, default_flow_style=None, sort_keys=True)
 			content = str(content).replace('\r\n', '\n')
 			meta = str(meta).replace('\r\n', '\n')
 			

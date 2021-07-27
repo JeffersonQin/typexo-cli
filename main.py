@@ -2,7 +2,7 @@ import yaml
 import os
 import click
 import requests
-import git
+import json
 import sys
 import shutil
 import time
@@ -226,7 +226,7 @@ def pull(source: str):
 @click.argument('source', type=click.Choice(['prod', 'test']))
 def diff(source: str):
 	'''
-	✅ Show difference between local workplace and prod / test
+	🚧 Show difference between local workplace and prod / test
 	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
@@ -256,7 +256,7 @@ def diff(source: str):
 @click.argument('source', type=click.Choice(['prod', 'test']))
 def deploy(ctx, source):
 	'''
-	🚧 Deploy the local workspace to a server
+	✅ Deploy the local workspace to a server
 	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
@@ -288,6 +288,7 @@ def deploy(ctx, source):
 				raise Exception(f'POST REQUEST (ADD CONTENT) FAILED FOR hash: {res["hash"]}, dir: {new_contents_dict[res["hash"]]["dir"]}')
 			elif res['code'] == 1:
 				echo.csuccess(f'POST SUCCESS: ADD CONTENT hash: {res["hash"]}, cid: {res["cid"]}, dir: {new_contents_dict[res["hash"]]["dir"]}')
+				local_cids[new_contents_dict[res["hash"]]["dir"]] = res["cid"]
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		# log update content
 		for res in res_update:
@@ -305,7 +306,46 @@ def deploy(ctx, source):
 			elif res['code'] == 1:
 				echo.csuccess(f'POST SUCCESS: DELETE CONTENT cid: {res["cid"]}, title: {deleted_titles[str(res["cid"])]}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+
+		# fields
+		# read fields in posts
+		cid_dir = read.read_local_dirs(local_cids)
+		local_fields = read.read_fields_in_posts(local_cids)
+		# get remote fields
+		remote_fields = messenger.fetch_database(source, 'fields')
+		# diff fields between local and remote
+		new_fields, deleted_fields = tdiff.diff_fields(local_fields, remote_fields)
+		res_add, _, res_delete = messenger.post_data('fields', source, new_fields, [], deleted_fields)
+		# log field response
+		# log add fields
+		for res in res_add:
+			cid = res['cid']
+			name = res['name']
+			res_dir = 'NOT_IN_DB'
+			if str(cid) in cid_dir.keys():
+				res_dir = cid_dir[str(cid)]
+			if res['code'] == -1:
+				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (ADD FIELD) FAILED FOR [cid]:[{cid}] {res_dir} => {name}')
+			elif res['code'] == 1:
+				echo.csuccess(f'POST SUCCESS: ADD FIELD, [cid]:[{cid}] {res_dir} => {name}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
+		# log delete fields
+		for res in res_delete:
+			cid = res['cid']
+			name = res['name']
+			res_dir = 'NOT_IN_DB'
+			if str(cid) in cid_dir.keys():
+				res_dir = cid_dir[str(cid)]
+			if res['code'] == -1:
+				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
+				raise Exception(f'POST REQUEST (DELETE FIELD) FAILED FOR [cid]:[{cid}] {res_dir} => {name}')
+			elif res['code'] == 1:
+				echo.csuccess(f'POST SUCCESS: DELETE FIELD, [cid]:[{cid}] {res_dir} => {name}')
+			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		# meta
+		# get mid => type / name
+		mid_data = read.read_local_meta_name()
 		# read local metas in `metas.json`
 		local_metas = read.read_local_metas()
 		# read local metas in posts
@@ -319,6 +359,7 @@ def deploy(ctx, source):
 		modified_metas_dict = { modified_meta['mid']: modified_meta['data'] for modified_meta in modified_metas }
 		# post meta to server
 		res_add, res_update, res_delete = messenger.post_data('metas', source, new_metas, modified_metas, deleted_metas)
+		local_metas = read.read_local_metas()
 		# log meta response
 		# log add meta
 		for res in res_add:
@@ -326,7 +367,18 @@ def deploy(ctx, source):
 				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
 				raise Exception(f'POST REQUEST (ADD META) FAILED FOR hash: {res["hash"]}, name: {new_metas_dict[res["hash"]]["name"]}')
 			elif res['code'] == 1:
-				echo.csuccess(f'POST SUCCESS: ADD META hash: {res["hash"]}, mid: {res["mid"]}, name: {new_metas_dict[res["hash"]]["name"]}')
+				type = new_metas_dict[res["hash"]]["type"]
+				name = new_metas_dict[res["hash"]]["name"]
+				mid = res["mid"]
+				echo.csuccess(f'POST SUCCESS: ADD META hash: {res["hash"]}, mid: {mid}, name: {name}')
+				mid_data[str(mid)] = {
+					"name": name,
+					"type": type
+				}
+				local_metas[type][name] = {
+					'mid': int(mid),
+					'type': type
+				}
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		# log update meta
 		for res in res_update:
@@ -344,18 +396,14 @@ def deploy(ctx, source):
 			elif res['code'] == 1:
 				echo.csuccess(f'POST SUCCESS: DELETE META mid: {res["mid"]}, title: {deleted_names[str(res["mid"])]}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
-		####
-		ctx.invoke(pull, source=source)
-		####
+		
 		# relationships
 		# read pairs in posts
-		local_pairs = read.read_pairs_in_posts()
+		local_pairs = read.read_pairs_in_posts(local_cids, local_metas)
 		# get remote pairs
 		remote_pairs = messenger.fetch_database(source, 'relationships')
 		# get cid => dir
 		cid_dir = read.read_local_dirs()
-		# get mid => type / name
-		mid_data = read.read_local_meta_name()
 		# diff pairs between local and remote
 		new_pairs, deleted_pairs = tdiff.diff_relationships(local_pairs, remote_pairs)
 		res_add, _, res_delete = messenger.post_data('relationships', source, new_pairs, [], deleted_pairs)
@@ -391,41 +439,6 @@ def deploy(ctx, source):
 				raise Exception(f'POST REQUEST (DELETE PAIR) FAILED FOR [cid, mid]:[{cid}, {mid}] {res_dir} => {res_meta}')
 			elif res['code'] == 1:
 				echo.csuccess(f'POST SUCCESS: DELETE PAIR, [cid,mid]:[{cid}, {mid}] {res_dir} => {res_meta}')
-			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
-		# fields
-		# read fields in posts
-		local_fields = read.read_fields_in_posts()
-		# get remote fields
-		remote_fields = messenger.fetch_database(source, 'fields')
-		# diff fields between local and remote
-		new_fields, deleted_fields = tdiff.diff_fields(local_fields, remote_fields)
-		res_add, _, res_delete = messenger.post_data('fields', source, new_fields, [], deleted_fields)
-		# log field response
-		# log add fields
-		for res in res_add:
-			cid = res['cid']
-			name = res['name']
-			res_dir = 'NOT_IN_DB'
-			if str(cid) in cid_dir.keys():
-				res_dir = cid_dir[str(cid)]
-			if res['code'] == -1:
-				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
-				raise Exception(f'POST REQUEST (ADD FIELD) FAILED FOR [cid]:[{cid}] {res_dir} => {name}')
-			elif res['code'] == 1:
-				echo.csuccess(f'POST SUCCESS: ADD FIELD, [cid]:[{cid}] {res_dir} => {name}')
-			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
-		# log delete fields
-		for res in res_delete:
-			cid = res['cid']
-			name = res['name']
-			res_dir = 'NOT_IN_DB'
-			if str(cid) in cid_dir.keys():
-				res_dir = cid_dir[str(cid)]
-			if res['code'] == -1:
-				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
-				raise Exception(f'POST REQUEST (DELETE FIELD) FAILED FOR [cid]:[{cid}] {res_dir} => {name}')
-			elif res['code'] == 1:
-				echo.csuccess(f'POST SUCCESS: DELETE FIELD, [cid]:[{cid}] {res_dir} => {name}')
 			else: raise Exception(f'UNKNOWN STATUS CODE {res["code"]}, message: {res["message"]}')
 		####
 		ctx.invoke(pull, source=source)
@@ -468,7 +481,7 @@ def server():
 @click.argument('title')
 def new(type: str, draft: bool, title: str):
 	'''
-	✅ Creat a new content item
+	✅ Create a new content item
 	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
@@ -519,7 +532,7 @@ def new(type: str, draft: bool, title: str):
 @cli.command()
 def format():
 	'''
-	🚧 Format files
+	✅ Format files
 	'''
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 
@@ -609,7 +622,8 @@ def status():
 
 
 @cli.command()
-def commit():
+@click.pass_context
+def commit(ctx):
 	'''
 	✅ Clean working tree: `git commit -am` for current branch
 	'''
@@ -617,6 +631,7 @@ def commit():
 
 	echo.clog('cleaning working tree.')
 	try:
+		ctx.invoke(format)
 		echo.clog('status: ')
 		git_status_subprocess()
 		echo.clog('git add .')
@@ -683,7 +698,7 @@ def prod_test():
 		response = requests.get(f"{globalvar.get_global('conf')['prod']['url']}/welcome?token={globalvar.get_global('conf')['prod']['token']}")
 		# If the response was successful, no Exception will be raised
 		response.raise_for_status()
-	except HTTPError as http_err:
+	except requests.HTTPError as http_err:
 		echo.cerr(f'HTTP error occurred: {repr(http_err)}')
 		traceback.print_exc()
 		echo.cexit('PROD TEST FAILED')

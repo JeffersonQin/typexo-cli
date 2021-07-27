@@ -206,7 +206,7 @@ def read_local_cids():
 		echo.pop_subroutine()
 
 
-def read_local_dirs():
+def read_local_dirs(local_cids=None):
 	'''
 	return {<cid>: <dir>}
 	'''
@@ -215,7 +215,8 @@ def read_local_dirs():
 	echo.clog('reading local dirs...')
 	try:
 		res = {}
-		local_cids = read_local_cids()
+		if local_cids is None:
+			local_cids = read_local_cids()
 		for key in local_cids.keys():
 			res[str(local_cids[key])] = key
 		return res
@@ -256,7 +257,7 @@ def read_local_meta_name():
 		echo.pop_subroutine()
 
 
-def read_pairs_in_posts():
+def read_pairs_in_posts(cids=None, metas=None):
 	'''
 	read pairs of metas with posts [{'mid': <mid>, 'cid': <cid>}]
 	'''
@@ -265,8 +266,10 @@ def read_pairs_in_posts():
 	echo.clog('reading pairs in posts...')
 	try:
 		res = []
-		cids = read_local_cids() # {'dir': 'cid'}
-		metas = read_local_metas() # {'category': {<name>: {<data>}}, 'tag': {<name>: {<data>}}}
+		if cids is None:
+			cids = read_local_cids() # {'dir': 'cid'}
+		if metas is None:
+			metas = read_local_metas() # {'category': {<name>: {<data>}}, 'tag': {<name>: {<data>}}}
 		files = filter_markdown()
 		for file in files:
 			md_file = read_markdown_file(file)
@@ -287,7 +290,7 @@ def read_pairs_in_posts():
 		echo.pop_subroutine()
 
 
-def read_fields_in_posts():
+def read_fields_in_posts(local_cids=None):
 	'''
 	return [{'cid': <cid>, 'name': <name>, 'type': <type>, 'value': <value>}]
 	'''
@@ -296,7 +299,10 @@ def read_fields_in_posts():
 	echo.clog('reading fields in posts...')
 	try:
 		res = []
-		cids = read_local_cids() # {'dir': 'cid'}
+		if local_cids is None:
+			cids = read_local_cids() # {'dir': 'cid'}
+		else:
+			cids = local_cids
 		files = filter_markdown()
 		for file in files:
 			md_file = read_markdown_file(file)
