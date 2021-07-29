@@ -367,8 +367,8 @@ def deploy(ctx, source):
 				echo.cerr(f'POST RESULT ERROR: {res["message"]}')
 				raise Exception(f'POST REQUEST (ADD META) FAILED FOR hash: {res["hash"]}, name: {new_metas_dict[res["hash"]]["name"]}')
 			elif res['code'] == 1:
-				type = new_metas_dict[res["hash"]]["type"]
-				name = new_metas_dict[res["hash"]]["name"]
+				type = new_metas_dict[res["hash"]]["type"][1:-1]
+				name = new_metas_dict[res["hash"]]["name"][1:-1]
 				mid = res["mid"]
 				echo.csuccess(f'POST SUCCESS: ADD META hash: {res["hash"]}, mid: {mid}, name: {name}')
 				mid_data[str(mid)] = {
@@ -538,7 +538,7 @@ def format():
 
 	echo.clog('formtting files')
 	try:
-		tdump.dump_contents_raw(read.read_local_contents_raw())
+		tdump.dump_contents_raw(read.read_local_contents_raw(), git_modified())
 	except Exception as e:
 		echo.cerr(f'error: {repr(e)}')
 		traceback.print_exc()

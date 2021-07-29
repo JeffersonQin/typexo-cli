@@ -22,12 +22,16 @@ def git_diff():
 def git_deleted():
 	ret = []
 	for item in git_diff():
-		if not os.path.exist(os.path.join(globalvar.get_global('wp_dir'), item)):
+		if not os.path.exists(os.path.join(globalvar.get_global('wp_dir'), item)):
 			ret.append(item)
+	return ret
 
 
 def git_modified():
-	return git_diff() - git_deleted()
+	diff = git_diff()
+	for deleted in git_deleted():
+		diff.remove(deleted)
+	return [ os.path.join(globalvar.get_global('wp_dir'), path) for path in diff ]
 
 
 def git_uncommitted():

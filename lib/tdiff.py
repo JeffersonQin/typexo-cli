@@ -60,8 +60,8 @@ def diff_contents(local: list, local_cids: dict, remote: list):
 						modify['data'][element] = tformatter.get_warped_mysql_value(element, l_content[element])
 			if not identical:
 				# add attribute: modified date
-				if 'modified' not in modify['data'].keys():
-					modify['data']['modified'] = int(time.time())
+				# if 'modified' not in modify['data'].keys():
+				# 	modify['data']['modified'] = int(time.time())
 				modified_files.append(modify)
 		# logging
 		echo.clog('---------- DIFF: CONTENT SECTION START ----------')

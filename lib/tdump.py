@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import traceback
 import json
 import yaml
@@ -95,7 +96,7 @@ def dump_contents(content_data: list, meta_data: list, pair_data: dict, field_da
 		echo.pop_subroutine()
 
 
-def dump_contents_raw(content_data: dict):
+def dump_contents_raw(content_data: dict, modified_path=[]):
 	echo.push_subroutine(sys._getframe().f_code.co_name)
 	
 	echo.clog('dumping contents (raw)...')
@@ -106,6 +107,10 @@ def dump_contents_raw(content_data: dict):
 			meta.pop('text')
 			meta['tags'].sort()
 			meta['categories'].sort()
+
+			if dir in modified_path:
+				meta['modified'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(time.time())))
+
 			meta = yaml.dump(meta, allow_unicode=True, default_flow_style=None, sort_keys=True)
 			content = str(content).replace('\r\n', '\n')
 			meta = str(meta).replace('\r\n', '\n')
