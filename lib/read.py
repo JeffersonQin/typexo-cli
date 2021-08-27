@@ -18,7 +18,7 @@ def read_markdown_file(dir: str, silent=True):
 	if not silent:
 		echo.clog(f'reading: {dir}')
 	try:
-		with open(dir, 'r') as f:
+		with open(dir, 'r', encoding='utf8') as f:
 			# front matter
 			if f.readline() != '---\n':
 				raise Exception('broken format: front matter detection error.')
@@ -50,7 +50,7 @@ def read_markdown_file_raw(dir: str, silent=True):
 	if not silent:
 		echo.clog(f'reading: {dir}')
 	try:
-		with open(dir, 'r') as f:
+		with open(dir, 'r', encoding='utf8) as f:
 			# front matter
 			if f.readline() != '---\n':
 				raise Exception('broken format: front matter detection error.')
