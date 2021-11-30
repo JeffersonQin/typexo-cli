@@ -190,7 +190,7 @@ def git_safe_merge_to_master(branch: str):
 			raise Exception('auto merge failed, working tree not clean.')
 		echo.csuccess('merge success.')
 		if branch == 'prod':
-			echo.clog('NOTE: PLEASE DO NOT DELETE PROD BRANCH, this is used to merge conflcits in the future.')
+			echo.clog('NOTE: PLEASE DO NOT DELETE PROD BRANCH, this is used to merge conflicts in the future.')
 			return
 		if branch == 'test':
 			echo.clog(f'automatically deleting "{branch}" branch...')
