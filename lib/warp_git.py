@@ -117,7 +117,9 @@ def git_reset_head_hard_subprocess():
 
 
 def git_push_to_remote_subprocess(branch:str):
-	subprocess.call(['git', '-C', globalvar.get_global('wp_dir'), 'push', globalvar.get_global('conf')['repo']['url'], 'origin', f'{branch}:{branch}'])
+	subprocess.call(['git', '-C', globalvar.get_global('wp_dir'), 'remote', 'rm', 'origin'])
+	subprocess.call(['git', '-C', globalvar.get_global('wp_dir'), 'remote', 'add', 'origin', globalvar.get_global('conf')['repo']['url']])
+	subprocess.call(['git', '-C', globalvar.get_global('wp_dir'), 'push', 'origin', f'{branch}:{branch}'])
 
 
 def git_clone_from_remote():
