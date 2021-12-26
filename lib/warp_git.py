@@ -93,7 +93,7 @@ def git_add_all_subprocess():
 
 
 def git_commit_subprocess(message: str):
-	subprocess.call(['git', '-C', globalvar.get_global('wp_dir'), 'commit', '-m', f'"{message}"'])
+	subprocess.call(['git', '-C', globalvar.get_global('wp_dir'), 'commit', '-m', message])
 
 
 def git_checkout_subprocess(branch: str):
