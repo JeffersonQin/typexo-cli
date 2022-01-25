@@ -8,13 +8,10 @@ import traceback
 import echo
 
 
-def download_file(url, dir):
-	echo.push_subroutine(sys._getframe().f_code.co_name)
-
+def _download_file(url, dir, headers):
 	echo.clog(f'start downloading: {url} => {dir}')
+	ret = 0
 	try:
-		# define request headers
-		headers = {'Proxy-Connection':'keep-alive'}
 		# start and block request
 		r = requests.get(url, stream=True, headers=headers)
 		# obtain content length
@@ -31,11 +28,26 @@ def download_file(url, dir):
 		echo.csuccess('Download Complete.')
 		f.close()
 	except Exception as err:
-		echo.cerr(f'error: {repr(err)}')
+		echo.cerr(f'Error: {repr(err)}')
 		traceback.print_exc()
-		echo.cexit('DOWNLOAD FAILED')
+		ret = 1
 	finally:
-		echo.pop_subroutine()
+		return ret
+
+
+def download_file(url, dir, headers={'Proxy-Connection':'keep-alive'}, trial=5):
+	echo.push_subroutine(sys._getframe().f_code.co_name)
+	fail_count = 0
+	while True:
+		ret = _download_file(url, dir, headers)
+		if ret == 0:
+			echo.pop_subroutine()
+			return
+		if fail_count < trial:
+			fail_count += 1
+			echo.cerr(f'Download failed, Trial {fail_count}/{trial}')
+		else:
+			echo.cexit('Download failed. Exceeded trial limit.')
 
 
 def size_description(size):
