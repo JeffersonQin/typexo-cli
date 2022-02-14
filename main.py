@@ -592,7 +592,7 @@ def import_command(type: str, draft: bool, file: str):
 			f.write('---\n')
 			f.write(meta)
 			f.write('---\n')
-			with open(file, 'r') as f1:
+			with open(file, 'r', encoding='utf8') as f1:
 				f.write(f1.read())
 		echo.csuccess(f'new item success: /{file_type}s/{year}/{mon}/{file_name}.md')
 	except Exception as e:
