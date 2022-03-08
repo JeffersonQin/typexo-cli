@@ -563,6 +563,7 @@ def import_command(type: str, draft: bool, file: str):
 		file_type = type
 		if draft: file_type = f'{file_type}_draft'
 		# file name
+		true_file_name = os.path.basename(file)[:-3]
 		file_name = utils.slugify(os.path.basename(file)[:-3])
 		# create time
 		time_stamp = int(os.path.getctime(file))
@@ -580,7 +581,7 @@ def import_command(type: str, draft: bool, file: str):
 		meta_data = globalvar.get_global('conf')['defaultProperties']
 		meta_data['created'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time_stamp))
 		meta_data['modified'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(os.path.getmtime(file))))
-		meta_data['title'] = file_name
+		meta_data['title'] = true_file_name
 		meta_data['type'] = file_type
 		meta_data['fields'] = globalvar.get_global('conf')['defaultFields']
 		if globalvar.get_global('conf')['defaultSlugType']:
