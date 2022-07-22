@@ -696,7 +696,7 @@ def prod_test():
 
 	echo.clog('testing connectivity...')
 	try:
-		response = requests.get(f"{globalvar.get_global('conf')['prod']['url']}/welcome?token={globalvar.get_global('conf')['prod']['token']}")
+		response = requests.get(f"{globalvar.get_global('conf')['prod']['url']}/welcome?token={globalvar.get_global('conf')['prod']['token']}", verify=globalvar.get_global('conf')['verify'])
 		# If the response was successful, no Exception will be raised
 		response.raise_for_status()
 	except requests.HTTPError as http_err:

@@ -50,7 +50,7 @@ def post_data(item: str, target: str, add: list, update: list, delete: list):
 			'update': update,
 			'delete': delete
 		}
-		res = requests.post(url=url, data=json.dumps(data)).json()
+		res = requests.post(url=url, data=json.dumps(data), verify=globalvar.get_global('conf')['verify']).json()
 		if res['code'] == -1:
 			echo.cerr(f'POST ERROR: {res["message"]}')
 			raise Exception('POST REQUEST FAILED')

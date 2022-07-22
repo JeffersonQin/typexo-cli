@@ -6,6 +6,7 @@ import click
 import traceback
 
 import echo
+import globalvar
 
 
 def _download_file(url, dir, headers):
@@ -13,7 +14,7 @@ def _download_file(url, dir, headers):
 	ret = 0
 	try:
 		# start and block request
-		r = requests.get(url, stream=True, headers=headers)
+		r = requests.get(url, stream=True, headers=headers, verify=globalvar.get_global('conf')['verify'])
 		# obtain content length
 		length = int(r.headers['content-length'])
 		echo.clog(f'file size: {size_description(length)}')
