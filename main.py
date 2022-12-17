@@ -752,6 +752,10 @@ if __name__ == '__main__':
 	click.echo(' read configuration...')
 	# read configuration
 	read_conf()
+	# set time zone
+	if 'timezone' in globalvar.get_global('conf').keys():
+		os.environ['TZ'] = globalvar.get_global('conf')['timezone']
+		time.tzset()
 	click.echo(click.style('-' * 40, fg = 'bright_blue'))
 	# Enable click
 	cli()

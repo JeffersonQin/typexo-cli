@@ -257,6 +257,7 @@ Reference: http://howiefh.github.io/2014/10/11/git-encoding/
 
 ## `prod`字段
 
+- [**只能在 Unix 下使用，用来使用跨时区编辑问题**] `timezone` - 时区。格式：`Asia/Shanghai`。
 - `token` - 生产环境的`typexo-server`的验证`token`
 - `url` - 生产环境`typexo-server`的访问链接
 
